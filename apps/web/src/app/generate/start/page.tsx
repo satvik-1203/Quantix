@@ -12,13 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, Atom, LineChart, Sigma, Zap } from "lucide-react";
+import { LineChart, Sigma, Zap } from "lucide-react";
 
 const DISTRIBUTIONS = [
   "Gaussian (Normal)",
@@ -90,22 +84,37 @@ export default function StartGenerationPage() {
   const router = useRouter();
   const prior = useMemo(() => Object.fromEntries(params.entries()), [params]);
 
-  const [distribution, setDistribution] = useState<string>("");
-  const [meanStr, setMean] = useState<string>("");
-  const [stddevStr, setStddev] = useState<string>("");
-  const [minStr, setMin] = useState<string>("");
-  const [maxStr, setMax] = useState<string>("");
-  const [lambdaStr, setLambda] = useState<string>("");
-
   const [inferred, setInferred] = useState<null | {
     distribution: string;
     params: any;
     source: string;
     explanation?: string;
+    fields?: Array<{ name: string; type: string }>;
   }>(null);
   const [preview, setPreview] = useState<number[] | null>(null);
+  const [rowObjects, setRowObjects] = useState<any[] | null>(null);
   const [mathLines, setMathLines] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function randomIp() {
+    return `${Math.floor(Math.random() * 256)}.${Math.floor(
+      Math.random() * 256
+    )}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+  }
+
+  function randomPhone() {
+    const d = () => Math.floor(Math.random() * 10);
+    return `+1-${d()}${d()}${d()}-${d()}${d()}${d()}-${d()}${d()}${d()}${d()}`;
+  }
+
+  function randomIcd10() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const L = letters[Math.floor(Math.random() * letters.length)];
+    const n1 = Math.floor(Math.random() * 10);
+    const n2 = Math.floor(Math.random() * 10);
+    const n3 = Math.floor(Math.random() * 10);
+    return `${L}${n1}${n2}.${n3}`;
+  }
 
   async function onInfer(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -113,6 +122,7 @@ export default function StartGenerationPage() {
     setInferred(null);
     setPreview(null);
     setMathLines(null);
+    setRowObjects(null);
 
     const resp = await fetch("/api/shape", {
       method: "POST",
@@ -130,15 +140,47 @@ export default function StartGenerationPage() {
     const data = await resp.json();
     setInferred(data);
 
+    // Determine sampling function from inferred distribution
     const d = data.distribution as string;
     const p = data.params || {};
+    const samplePrimary = () => {
+      if (d === "Gaussian (Normal)") {
+        const m = Number(p.mean ?? 0);
+        const s = Math.max(Number(p.stddev ?? 1), 1e-6);
+        return sampleNormal(m, s);
+      }
+      if (d === "Uniform") {
+        const a = Number(p.min ?? 0);
+        const b = Number(p.max ?? 1);
+        const lo = Math.min(a, b);
+        const hi = Math.max(a, b);
+        return sampleUniform(lo, hi);
+      }
+      if (d === "Poisson") {
+        const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+        return samplePoisson(l);
+      }
+      if (d === "Exponential") {
+        const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+        return sampleExponential(l);
+      }
+      if (d === "Log-normal") {
+        const mu = Number(p.mean ?? 0);
+        const sg = Math.max(Number(p.stddev ?? 1), 1e-6);
+        return sampleLogNormal(mu, sg);
+      }
+      return sampleNormal(0, 1);
+    };
 
-    // Generate 10 samples only AFTER inference
+    // Generate 10 primary samples
     const out: number[] = [];
+    for (let i = 0; i < 10; i++) out.push(samplePrimary());
+    setPreview(out);
+
+    // Compute math summary on primary samples ONLY
     if (d === "Gaussian (Normal)") {
       const m = Number(p.mean ?? 0);
       const s = Math.max(Number(p.stddev ?? 1), 1e-6);
-      for (let i = 0; i < 10; i++) out.push(sampleNormal(m, s));
       setMathLines([
         `E[X] = μ = ${format(m)} • sample mean = ${format(mean(out))}`,
         `Var[X] = σ² = ${format(s * s)} • sample σ ≈ ${format(stddev(out))}`,
@@ -148,7 +190,6 @@ export default function StartGenerationPage() {
       const b = Number(p.max ?? 1);
       const lo = Math.min(a, b);
       const hi = Math.max(a, b);
-      for (let i = 0; i < 10; i++) out.push(sampleUniform(lo, hi));
       const theoMean = (lo + hi) / 2;
       const theoVar = (hi - lo) ** 2 / 12;
       setMathLines([
@@ -161,20 +202,17 @@ export default function StartGenerationPage() {
       ]);
     } else if (d === "Poisson") {
       const l = Math.max(Number(p.lambda ?? 1), 1e-6);
-      for (let i = 0; i < 10; i++) out.push(samplePoisson(l));
       setMathLines([
         `E[X] = Var[X] = λ = ${format(l)} • sample mean = ${format(mean(out))}`,
       ]);
     } else if (d === "Exponential") {
       const l = Math.max(Number(p.lambda ?? 1), 1e-6);
-      for (let i = 0; i < 10; i++) out.push(sampleExponential(l));
       setMathLines([
         `E[X] = 1/λ = ${format(1 / l)} • sample mean = ${format(mean(out))}`,
       ]);
     } else if (d === "Log-normal") {
       const mu = Number(p.mean ?? 0);
       const sg = Math.max(Number(p.stddev ?? 1), 1e-6);
-      for (let i = 0; i < 10; i++) out.push(sampleLogNormal(mu, sg));
       const logVals = out.filter((x) => x > 0).map((x) => Math.log(x));
       const lm = mean(logVals);
       const ls = stddev(logVals);
@@ -184,7 +222,101 @@ export default function StartGenerationPage() {
       ]);
     }
 
-    setPreview(out);
+    // Build row objects using domain fields; map primary numeric column to appropriate field
+    if (Array.isArray(data.fields) && data.fields.length > 0) {
+      const rows: any[] = [];
+      const fieldDefs = data.fields as Array<{ name: string; type: string }>;
+      const merchants = [
+        "Amazon",
+        "Walmart",
+        "Target",
+        "Starbucks",
+        "Uber",
+        "Apple Store",
+      ];
+      const categories = [
+        "Groceries",
+        "Dining",
+        "Transport",
+        "Electronics",
+        "Health",
+        "Utilities",
+      ];
+      for (let i = 0; i < 10; i++) {
+        const r: any = {};
+        fieldDefs.forEach((f) => {
+          const nm = f.name.toLowerCase();
+          if (
+            nm === "amount" ||
+            nm === "price" ||
+            nm === "duration_seconds" ||
+            nm === "inter_arrival_seconds" ||
+            nm === "length_of_stay" ||
+            nm === "charge"
+          ) {
+            // Use primary sample so math summary matches these values
+            r[f.name] = format(
+              out[i],
+              nm === "duration_seconds" || nm === "inter_arrival_seconds"
+                ? 3
+                : 2
+            );
+          } else if (nm === "timestamp" || nm === "timestamp_start") {
+            const now = Date.now();
+            r[f.name] = new Date(
+              now - Math.floor(Math.random() * 30 * 864e5)
+            ).toISOString();
+          } else if (nm === "merchant") {
+            r[f.name] = merchants[Math.floor(Math.random() * merchants.length)];
+          } else if (nm === "category") {
+            r[f.name] =
+              categories[Math.floor(Math.random() * categories.length)];
+          } else if (nm === "currency") {
+            r[f.name] = "USD";
+          } else if (nm === "card_last4") {
+            r[f.name] = String(1000 + Math.floor(Math.random() * 9000));
+          } else if (nm === "channel") {
+            r[f.name] = Math.random() < 0.5 ? "card-present" : "ecom";
+          } else if (nm === "city") {
+            r[f.name] = ["San Francisco", "New York", "Austin", "Seattle"][
+              Math.floor(Math.random() * 4)
+            ];
+          } else if (nm === "country") {
+            r[f.name] = "US";
+          } else if (
+            nm === "txn_id" ||
+            nm === "order_id" ||
+            nm === "encounter_id" ||
+            nm === "call_id" ||
+            nm === "event_id"
+          ) {
+            r[f.name] = `${nm.split("_")[0]}_${Math.random()
+              .toString(36)
+              .slice(2, 10)}`;
+          } else if (nm === "source_ip" || nm === "dest_ip") {
+            r[f.name] = randomIp();
+          } else if (nm === "from_number" || nm === "to_number") {
+            r[f.name] = randomPhone();
+          } else if (nm === "diagnosis_code") {
+            r[f.name] = randomIcd10();
+          } else if (f.type === "number") {
+            // Secondary numeric fields: derive mild noise around primary to look plausible but keep preview focused on primary
+            r[f.name] = format(out[i] * (0.9 + Math.random() * 0.2), 3);
+          } else if (f.type === "date") {
+            r[f.name] = new Date(
+              Date.now() - Math.floor(Math.random() * 7 * 864e5)
+            ).toISOString();
+          } else {
+            r[f.name] = `${f.name}_${i + 1}`;
+          }
+        });
+        rows.push(r);
+      }
+      setRowObjects(rows);
+    } else {
+      setRowObjects(null);
+    }
+
     setLoading(false);
   }
 
@@ -196,141 +328,11 @@ export default function StartGenerationPage() {
             Generation Console
           </h1>
           <p className="text-muted-foreground mt-3">
-            Configure distributions and parameters. Your previous inputs are
-            carried over.
+            We will infer the distribution and show a preview.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="data-grid">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Atom className="w-5 h-5 text-primary" /> Distribution
-              </CardTitle>
-              <CardDescription>
-                Select the base distribution for your synthetic variable(s).
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Label className="text-sm">Choose distribution</Label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-between ${
-                      distribution === "Custom mixture"
-                        ? "pulse-glow border-accent"
-                        : ""
-                    }`}
-                  >
-                    {distribution || "Select distribution"}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-full">
-                  {DISTRIBUTIONS.map((d) => (
-                    <DropdownMenuItem
-                      key={d}
-                      onSelect={() => setDistribution(d)}
-                    >
-                      {d}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Parameter inputs (optional overrides) */}
-              {distribution === "Gaussian (Normal)" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm">Mean (μ)</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 0"
-                      value={meanStr}
-                      onChange={(e) => setMean(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Std Dev (σ)</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 1"
-                      value={stddevStr}
-                      onChange={(e) => setStddev(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {distribution === "Uniform" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm">Min</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 0"
-                      value={minStr}
-                      onChange={(e) => setMin(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Max</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 1"
-                      value={maxStr}
-                      onChange={(e) => setMax(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {(distribution === "Poisson" ||
-                distribution === "Exponential") && (
-                <div className="space-y-2">
-                  <Label className="text-sm">Lambda (λ)</Label>
-                  <Input
-                    inputMode="decimal"
-                    placeholder="e.g. 1.2"
-                    value={lambdaStr}
-                    onChange={(e) => setLambda(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {distribution === "Log-normal" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm">Log-mean (μ)</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 0"
-                      value={meanStr}
-                      onChange={(e) => setMean(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Log-std (σ)</Label>
-                    <Input
-                      inputMode="decimal"
-                      placeholder="e.g. 1"
-                      value={stddevStr}
-                      onChange={(e) => setStddev(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {distribution === "Custom mixture" && (
-                <div className="space-y-2">
-                  <Label className="text-sm">Describe your mixture</Label>
-                  <Input placeholder="e.g. 70% Normal(0,1) + 30% Exponential(1.2)" />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-6">
           <Card className="data-grid">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -408,7 +410,7 @@ export default function StartGenerationPage() {
                     )}
                   </div>
 
-                  {preview && (
+                  {preview && !rowObjects && (
                     <div className="space-y-3">
                       <Label className="text-sm">Example rows (10)</Label>
                       <div className="rounded-lg border overflow-hidden">
@@ -431,6 +433,39 @@ export default function StartGenerationPage() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {rowObjects && (
+                    <div className="space-y-3">
+                      <Label className="text-sm">Example rows (10)</Label>
+                      <div className="rounded-lg border overflow-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-accent/20">
+                            <tr>
+                              {Object.keys(rowObjects[0]).map((k) => (
+                                <th
+                                  key={k}
+                                  className="text-left px-3 py-2 font-medium"
+                                >
+                                  {k}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {rowObjects.map((r, i) => (
+                              <tr key={i}>
+                                {Object.keys(rowObjects[0]).map((k) => (
+                                  <td key={k} className="px-3 py-2 font-mono">
+                                    {String(r[k])}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   )}
