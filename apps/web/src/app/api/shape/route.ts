@@ -5,7 +5,6 @@ export const runtime = "nodejs";
 type ShapeRequest = {
   industry?: string;
   dataNeed?: string;
-  outcome?: string;
   recordVolume?: string;
   sensitive?: boolean;
   notes?: string;
@@ -27,8 +26,8 @@ type ShapeResponse = {
 
 function heuristicShape(input: ShapeRequest): ShapeResponse {
   const text = `${input.industry ?? ""} ${input.dataNeed ?? ""} ${
-    input.outcome ?? ""
-  } ${input.notes ?? ""}`.toLowerCase();
+    input.notes ?? ""
+  }`.toLowerCase();
   let distribution = "Gaussian (Normal)";
   const params: ShapeResponse["params"] = {};
   let fields: ShapeResponse["fields"] | undefined;
@@ -219,7 +218,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Use Groq Chat Completions API (OpenAI-compatible)
-    const prompt = `You are a data synthesis expert. Given: industry=${body.industry}, purpose=${body.dataNeed}, outcome=${body.outcome}, volume=${body.recordVolume}, sensitive=${body.sensitive}, notes=${body.notes}. Suggest ONE primary univariate distribution (choose exactly one of: "Gaussian (Normal)", "Uniform", "Poisson", "Exponential", "Log-normal", "Custom mixture"). Include sensible numeric parameters. Reply as compact JSON only with keys: distribution, params (object with numeric fields among mean,stddev,min,max,lambda), fields (array with typed columns appropriate for the requested domain; include names like amount/timestamp/merchant for transactions; price/quantity for ecommerce; encounter_id/diagnosis_code/charge for healthcare; duration_seconds/from_number for telecom; source_ip/dest_ip/ports/protocol/action/severity for cybersecurity. Types must be number|string|date), explanation.`;
+    const prompt = `You are a data synthesis expert. Given: industry=${body.industry}, purpose=${body.dataNeed}, volume=${body.recordVolume}, sensitive=${body.sensitive}, notes=${body.notes}. Suggest ONE primary univariate distribution (choose exactly one of: "Gaussian (Normal)", "Uniform", "Poisson", "Exponential", "Log-normal", "Custom mixture"). Include sensible numeric parameters. Reply as compact JSON only with keys: distribution, params (object with numeric fields among mean,stddev,min,max,lambda), fields (array with typed columns appropriate for the requested domain; include names like amount/timestamp/merchant for transactions; price/quantity for ecommerce; encounter_id/diagnosis_code/charge for healthcare; duration_seconds/from_number for telecom; source_ip/dest_ip/ports/protocol/action/severity for cybersecurity. Types must be number|string|date), explanation.`;
 
     const resp = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",

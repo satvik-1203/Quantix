@@ -15,7 +15,6 @@ export default function GuidedSummaryPage() {
   const router = useRouter();
   const industry = params.get("industry") || "—";
   const dataNeed = params.get("dataNeed") || "—";
-  const outcome = params.get("outcome") || "—";
   const recordVolume = params.get("recordVolume") || "—";
   const sensitive = params.get("sensitive") === "true" ? "Yes" : "No";
   const freeText = params.get("freeText") || "—";
@@ -41,10 +40,6 @@ export default function GuidedSummaryPage() {
               <div>
                 <div className="text-muted-foreground">Purpose</div>
                 <div className="font-medium">{dataNeed}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Desired outcome</div>
-                <div className="font-medium">{outcome}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">Record volume</div>

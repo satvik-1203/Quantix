@@ -50,20 +50,10 @@ const DATA_NEEDS = [
   "QA for pipelines",
 ] as const;
 
-const OUTCOMES = [
-  "Create new intelligence",
-  "Improve model accuracy",
-  "Validate system behavior",
-  "Speed up development",
-  "Enable collaboration",
-  "Regulatory compliance",
-] as const;
-
 export default function GuidedGeneratorPage() {
   const router = useRouter();
   const [industry, setIndustry] = useState<string>("");
   const [dataNeed, setDataNeed] = useState<string>("");
-  const [outcome, setOutcome] = useState<string>("");
   const [recordVolume, setRecordVolume] = useState<string>("");
   const [sensitive, setSensitive] = useState<boolean>(false);
   const [freeText, setFreeText] = useState<string>("");
@@ -73,7 +63,6 @@ export default function GuidedGeneratorPage() {
     const params = new URLSearchParams({
       industry,
       dataNeed,
-      outcome,
       recordVolume,
       sensitive: String(sensitive),
       freeText,
@@ -147,67 +136,6 @@ export default function GuidedGeneratorPage() {
                           onSelect={() => setDataNeed(item)}
                         >
                           {item}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              {/* Desired outcome */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-sm">
-                  <Sparkles className="w-4 h-4" /> Desired outcome
-                </Label>
-                <div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-between ${
-                          outcome === "Create new intelligence"
-                            ? "pulse-glow border-accent"
-                            : ""
-                        }`}
-                      >
-                        {outcome ? (
-                          <span
-                            className={`flex items-center gap-2 ${
-                              outcome === "Create new intelligence"
-                                ? "text-accent"
-                                : ""
-                            }`}
-                          >
-                            {outcome === "Create new intelligence" && (
-                              <Sparkles className="w-4 h-4" />
-                            )}
-                            {outcome}
-                          </span>
-                        ) : (
-                          "Select outcome"
-                        )}
-                        <ChevronDown className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {OUTCOMES.map((item) => (
-                        <DropdownMenuItem
-                          key={item}
-                          onSelect={() => setOutcome(item)}
-                          className={
-                            item === "Create new intelligence"
-                              ? "bg-accent/10 focus:bg-accent/20 font-medium"
-                              : undefined
-                          }
-                        >
-                          {item === "Create new intelligence" ? (
-                            <span className="flex items-center gap-2">
-                              <Sparkles className="w-4 h-4 text-accent" />
-                              <span>{item}</span>
-                            </span>
-                          ) : (
-                            item
-                          )}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
