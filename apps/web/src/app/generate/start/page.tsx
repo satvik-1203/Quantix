@@ -29,22 +29,163 @@ const DISTRIBUTIONS = [
   "Custom mixture",
 ] as const;
 
+function parseNum(value: string, fallback = 0): number {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function sampleNormal(mean: number, std: number): number {
+  let u = 0;
+  let v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  return mean + std * z;
+}
+
+function sampleUniform(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
+
+function samplePoisson(lambda: number): number {
+  const L = Math.exp(-lambda);
+  let k = 0;
+  let p = 1;
+  do {
+    k++;
+    p *= Math.random();
+  } while (p > L);
+  return k - 1;
+}
+
+function sampleExponential(lambda: number): number {
+  const u = Math.random();
+  return -Math.log(1 - u) / lambda;
+}
+
+function sampleLogNormal(mu: number, sigma: number): number {
+  const x = sampleNormal(mu, sigma);
+  return Math.exp(x);
+}
+
+function mean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+function stddev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const m = mean(values);
+  const variance =
+    values.reduce((acc, x) => acc + (x - m) * (x - m), 0) / (values.length - 1);
+  return Math.sqrt(variance);
+}
+
+function format(n: number, digits = 3): string {
+  return Number.isFinite(n) ? n.toFixed(digits) : "—";
+}
+
 export default function StartGenerationPage() {
   const params = useSearchParams();
   const router = useRouter();
   const prior = useMemo(() => Object.fromEntries(params.entries()), [params]);
 
   const [distribution, setDistribution] = useState<string>("");
-  const [mean, setMean] = useState<string>("");
-  const [stddev, setStddev] = useState<string>("");
-  const [min, setMin] = useState<string>("");
-  const [max, setMax] = useState<string>("");
-  const [lambda, setLambda] = useState<string>("");
+  const [meanStr, setMean] = useState<string>("");
+  const [stddevStr, setStddev] = useState<string>("");
+  const [minStr, setMin] = useState<string>("");
+  const [maxStr, setMax] = useState<string>("");
+  const [lambdaStr, setLambda] = useState<string>("");
 
-  function onStart(e: React.FormEvent<HTMLFormElement>) {
+  const [inferred, setInferred] = useState<null | {
+    distribution: string;
+    params: any;
+    source: string;
+    explanation?: string;
+  }>(null);
+  const [preview, setPreview] = useState<number[] | null>(null);
+  const [mathLines, setMathLines] = useState<string[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onInfer(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Placeholder: would call API or navigate to preview next.
-    router.push("/");
+    setLoading(true);
+    setInferred(null);
+    setPreview(null);
+    setMathLines(null);
+
+    const resp = await fetch("/api/shape", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        industry: prior.industry,
+        dataNeed: prior.dataNeed,
+        outcome: prior.outcome,
+        recordVolume: prior.recordVolume,
+        sensitive: prior.sensitive === "true",
+        notes: prior.freeText,
+      }),
+    });
+
+    const data = await resp.json();
+    setInferred(data);
+
+    const d = data.distribution as string;
+    const p = data.params || {};
+
+    // Generate 10 samples only AFTER inference
+    const out: number[] = [];
+    if (d === "Gaussian (Normal)") {
+      const m = Number(p.mean ?? 0);
+      const s = Math.max(Number(p.stddev ?? 1), 1e-6);
+      for (let i = 0; i < 10; i++) out.push(sampleNormal(m, s));
+      setMathLines([
+        `E[X] = μ = ${format(m)} • sample mean = ${format(mean(out))}`,
+        `Var[X] = σ² = ${format(s * s)} • sample σ ≈ ${format(stddev(out))}`,
+      ]);
+    } else if (d === "Uniform") {
+      const a = Number(p.min ?? 0);
+      const b = Number(p.max ?? 1);
+      const lo = Math.min(a, b);
+      const hi = Math.max(a, b);
+      for (let i = 0; i < 10; i++) out.push(sampleUniform(lo, hi));
+      const theoMean = (lo + hi) / 2;
+      const theoVar = (hi - lo) ** 2 / 12;
+      setMathLines([
+        `E[X] = (a+b)/2 = ${format(theoMean)} • sample mean = ${format(
+          mean(out)
+        )}`,
+        `Var[X] = (b−a)²/12 = ${format(theoVar)} • range ≈ [${format(
+          Math.min(...out)
+        )}, ${format(Math.max(...out))}]`,
+      ]);
+    } else if (d === "Poisson") {
+      const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+      for (let i = 0; i < 10; i++) out.push(samplePoisson(l));
+      setMathLines([
+        `E[X] = Var[X] = λ = ${format(l)} • sample mean = ${format(mean(out))}`,
+      ]);
+    } else if (d === "Exponential") {
+      const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+      for (let i = 0; i < 10; i++) out.push(sampleExponential(l));
+      setMathLines([
+        `E[X] = 1/λ = ${format(1 / l)} • sample mean = ${format(mean(out))}`,
+      ]);
+    } else if (d === "Log-normal") {
+      const mu = Number(p.mean ?? 0);
+      const sg = Math.max(Number(p.stddev ?? 1), 1e-6);
+      for (let i = 0; i < 10; i++) out.push(sampleLogNormal(mu, sg));
+      const logVals = out.filter((x) => x > 0).map((x) => Math.log(x));
+      const lm = mean(logVals);
+      const ls = stddev(logVals);
+      setMathLines([
+        `log-mean (μ) = ${format(mu)} • sample log-mean = ${format(lm)}`,
+        `log-std (σ) = ${format(sg)} • sample log-std = ${format(ls)}`,
+      ]);
+    }
+
+    setPreview(out);
+    setLoading(false);
   }
 
   return (
@@ -98,7 +239,7 @@ export default function StartGenerationPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Conditional parameter inputs */}
+              {/* Parameter inputs (optional overrides) */}
               {distribution === "Gaussian (Normal)" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -106,7 +247,7 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 0"
-                      value={mean}
+                      value={meanStr}
                       onChange={(e) => setMean(e.target.value)}
                     />
                   </div>
@@ -115,7 +256,7 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 1"
-                      value={stddev}
+                      value={stddevStr}
                       onChange={(e) => setStddev(e.target.value)}
                     />
                   </div>
@@ -129,7 +270,7 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 0"
-                      value={min}
+                      value={minStr}
                       onChange={(e) => setMin(e.target.value)}
                     />
                   </div>
@@ -138,32 +279,21 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 1"
-                      value={max}
+                      value={maxStr}
                       onChange={(e) => setMax(e.target.value)}
                     />
                   </div>
                 </div>
               )}
 
-              {distribution === "Poisson" && (
-                <div className="space-y-2">
-                  <Label className="text-sm">Lambda (λ)</Label>
-                  <Input
-                    inputMode="decimal"
-                    placeholder="e.g. 3.5"
-                    value={lambda}
-                    onChange={(e) => setLambda(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {distribution === "Exponential" && (
+              {(distribution === "Poisson" ||
+                distribution === "Exponential") && (
                 <div className="space-y-2">
                   <Label className="text-sm">Lambda (λ)</Label>
                   <Input
                     inputMode="decimal"
                     placeholder="e.g. 1.2"
-                    value={lambda}
+                    value={lambdaStr}
                     onChange={(e) => setLambda(e.target.value)}
                   />
                 </div>
@@ -176,7 +306,7 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 0"
-                      value={mean}
+                      value={meanStr}
                       onChange={(e) => setMean(e.target.value)}
                     />
                   </div>
@@ -185,7 +315,7 @@ export default function StartGenerationPage() {
                     <Input
                       inputMode="decimal"
                       placeholder="e.g. 1"
-                      value={stddev}
+                      value={stddevStr}
                       onChange={(e) => setStddev(e.target.value)}
                     />
                   </div>
@@ -204,14 +334,15 @@ export default function StartGenerationPage() {
           <Card className="data-grid">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <LineChart className="w-5 h-5 text-primary" /> Preview & next
+                <LineChart className="w-5 h-5 text-primary" /> Inference &
+                preview
               </CardTitle>
               <CardDescription>
-                We’ll soon render sample rows and charts.
+                We infer shape with Groq (or fallback), then preview.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={onStart} className="space-y-4">
+              <form onSubmit={onInfer} className="space-y-4">
                 <div className="rounded-lg border p-4 text-sm text-muted-foreground">
                   <div className="font-medium mb-2">Context</div>
                   <div>
@@ -245,19 +376,92 @@ export default function StartGenerationPage() {
                     </span>
                   </div>
                 </div>
+
                 <div className="flex items-center justify-end gap-3">
                   <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => router.back()}
+                    type="submit"
+                    className="pulse-glow"
+                    disabled={loading}
                   >
-                    Back
-                  </Button>
-                  <Button type="submit" className="pulse-glow">
-                    <Zap className="w-4 h-4 mr-2" /> Start generation
+                    {loading ? "Inferring..." : "Infer data shape"}
                   </Button>
                 </div>
               </form>
+
+              {/* Show preview only after inference */}
+              {inferred && (
+                <div className="space-y-4 mt-6">
+                  <div className="rounded-lg border p-4">
+                    <div className="text-sm text-muted-foreground">
+                      Inference result ({inferred.source})
+                    </div>
+                    <div className="text-sm mt-1">
+                      Distribution:{" "}
+                      <span className="font-medium">
+                        {inferred.distribution}
+                      </span>
+                    </div>
+                    {inferred.explanation && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {inferred.explanation}
+                      </div>
+                    )}
+                  </div>
+
+                  {preview && (
+                    <div className="space-y-3">
+                      <Label className="text-sm">Example rows (10)</Label>
+                      <div className="rounded-lg border overflow-hidden">
+                        <div className="grid grid-cols-[60px_1fr] bg-accent/20 text-xs font-medium">
+                          <div className="px-3 py-2">#</div>
+                          <div className="px-3 py-2">value</div>
+                        </div>
+                        <div className="divide-y">
+                          {preview.map((val, idx) => (
+                            <div
+                              key={idx}
+                              className="grid grid-cols-[60px_1fr] text-sm"
+                            >
+                              <div className="px-3 py-2 text-muted-foreground">
+                                {idx + 1}
+                              </div>
+                              <div className="px-3 py-2 font-mono">
+                                {format(val)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {mathLines && mathLines.length > 0 && (
+                    <div className="rounded-lg border p-4 text-sm data-grid">
+                      <div className="font-medium mb-2">Distribution check</div>
+                      <ul className="space-y-1">
+                        {mathLines.map((line, i) => (
+                          <li key={i} className="font-mono">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => router.back()}
+                    >
+                      Back
+                    </Button>
+                    <Button className="pulse-glow">
+                      <Zap className="w-4 h-4 mr-2" /> Start generation
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
