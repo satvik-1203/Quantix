@@ -1,17 +1,19 @@
-import { db } from "@/db"
-import { testCases } from "@/db/schema"
-import { eq } from "drizzle-orm"
-
+import { db } from "@/db";
+import { testCases } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const generateTestService = async (testCaseId: number) => {
-
-    // Get the test case
-    
-    const testCase = await db.query.testCases.findMany()
+  // Get the test case
+  try {
+    const testCase = await db.query.testCases.findMany();
 
     if (!testCase) {
-        throw new Error("Test case not found")
+      throw new Error("Test case not found");
     }
 
-    return testCase
-}
+    return testCase;
+  } catch (error) {
+    console.error("[DB] Failed to query test_cases:", error);
+    throw error;
+  }
+};
