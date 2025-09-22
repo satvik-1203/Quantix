@@ -18,7 +18,6 @@
   "examples": [],
   "auth": "none",
   "packageManager": "pnpm",
-  "dbSetup": "neon",
   "api": "none",
   "webDeploy": "none",
   "serverDeploy": "none"
