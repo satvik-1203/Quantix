@@ -14,11 +14,11 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.2",
     "express": "^5.1.0",
+    "openai": "^5.22.0",
     "postgres": "^3.4.7",
     "ws": "^8.18.3",
     "zod": "^4.0.2"

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import generateTestRouter from "./routers/generate-test/contoller";
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(express.json());
 app.get("/", (_req, res) => {
 	res.status(200).send("OK");
 });
+
+app.use("/api/generate-test", generateTestRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

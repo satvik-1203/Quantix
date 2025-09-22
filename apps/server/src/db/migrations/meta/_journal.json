@@ -8,6 +8,13 @@
       "when": 1758510371676,
       "tag": "0000_nappy_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758514620594,
+      "tag": "0001_deep_namorita",
+      "breakpoints": true
     }
   ]
 }
