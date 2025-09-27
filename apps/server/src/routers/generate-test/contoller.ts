@@ -1,16 +1,15 @@
-import {Router} from "express"
+import { Router } from "express";
 import { generateTestService } from "./service";
 
-const router:Router = Router()
+const router: Router = Router();
 
 // api/generate-test/home
 router.post("/", async (req, res) => {
-   const id = req.body.id;
+  const id = req.body.id;
 
-   const generatedTestCases = await generateTestService(id)
+  const generatedTestCases = await generateTestService(id);
 
-   res.status(200).send(generatedTestCases)
+  res.status(200).send(generatedTestCases);
 });
 
-
-export default router
+export default router;

@@ -1,0 +1,31 @@
+{
+  "name": "@workspace/drizzle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    ".": "./src/db/index.ts",
+    "./schema": "./src/db/schema.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "drizzle-orm": "^0.44.2",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.11",
+    "drizzle-kit": "^0.31.2",
+    "tsdown": "^0.14.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.2"
+  }
+}

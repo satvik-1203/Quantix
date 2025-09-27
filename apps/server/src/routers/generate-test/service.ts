@@ -1,5 +1,4 @@
-import { db } from "@/db";
-import { testCases } from "@/db/schema";
+import { db } from "@workspace/drizzle";
 import { eq } from "drizzle-orm";
 
 export const generateTestService = async (testCaseId: number) => {

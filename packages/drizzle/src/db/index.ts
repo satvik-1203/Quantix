@@ -26,3 +26,5 @@ const sql = postgres(databaseUrl, {
 export const db = drizzle(sql, {
   schema: schema,
 });
+
+export * from "./schema";
