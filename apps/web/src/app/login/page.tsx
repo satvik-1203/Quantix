@@ -68,13 +68,13 @@ export default function LoginPage() {
 
               <div className="text-xs text-muted-foreground flex items-center justify-between">
                 <Link
-                  href="/forgot"
+                  href="/"
                   className="hover:text-foreground underline-offset-4 hover:underline"
                 >
                   Forgot password?
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/"
                   className="hover:text-foreground inline-flex items-center gap-1 underline-offset-4 hover:underline"
                 >
                   Create account <ArrowRight className="w-3.5 h-3.5" />
@@ -102,14 +102,14 @@ export default function LoginPage() {
         <p className="text-center text-xs text-muted-foreground mt-6">
           By continuing you agree to our {""}
           <Link
-            href="/terms"
+            href="/"
             className="underline underline-offset-4 hover:text-foreground"
           >
             Terms
           </Link>{" "}
           and {""}
           <Link
-            href="/privacy"
+            href="/"
             className="underline underline-offset-4 hover:text-foreground"
           >
             Privacy Policy
