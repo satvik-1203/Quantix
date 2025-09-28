@@ -15,6 +15,7 @@
     "@tanstack/react-form": "^1.12.3",
     "@tanstack/react-query": "^5.85.5",
     "class-variance-authority": "^0.7.1",
+    "@workspace/drizzle": "workspace:*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.487.0",
     "next": "15.5.0",

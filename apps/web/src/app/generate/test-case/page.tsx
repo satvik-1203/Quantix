@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createTestCase } from "./action";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -52,6 +53,7 @@ export default function TestCaseGeneratorPage() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // TODO: Handle form submission
+    createTestCase(values);
   }
 
   return (
