@@ -87,6 +87,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.85.5
         version: 5.87.4(react@19.1.0)
+      '@workspace/drizzle':
+        specifier: workspace:*
+        version: link:../../packages/drizzle
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
