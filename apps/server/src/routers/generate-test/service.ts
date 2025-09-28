@@ -1,10 +1,12 @@
-import { db } from "@workspace/drizzle";
+import { db, testCases } from "@workspace/drizzle";
 import { eq } from "drizzle-orm";
 
 export const generateTestService = async (testCaseId: number) => {
   // Get the test case
   try {
-    const testCase = await db.query.testCases.findMany();
+    const testCase = await db.query.testCases.findFirst({
+      where: eq(testCases.id, testCaseId),
+    });
 
     if (!testCase) {
       throw new Error("Test case not found");
