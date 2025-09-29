@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 export const createSubTestSchema = z.object({
-  testCaseId: z
-    .number({ required_error: "Missing test case" })
-    .int()
-    .positive(),
+  testCaseId: z.number({ error: "Missing test case" }).int().positive(),
   name: z
     .string()
     .trim()
