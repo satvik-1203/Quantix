@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { LineChart, Sigma, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 const DISTRIBUTIONS = [
   "Gaussian (Normal)",
@@ -104,6 +105,7 @@ export default function StartGenerationPage() {
     reason: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   function randomIp() {
     return `${Math.floor(Math.random() * 256)}.${Math.floor(
@@ -250,6 +252,225 @@ export default function StartGenerationPage() {
       text.includes("ai") ||
       text.includes("algorithm")
     );
+  }
+
+  function toCsv(rows: Array<Record<string, any>>): string {
+    if (!rows || rows.length === 0) return "";
+    const headers = Object.keys(rows[0]);
+    const escape = (val: any) => {
+      const s = String(val ?? "");
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+    const lines = [headers.join(",")];
+    for (const row of rows) {
+      lines.push(headers.map((h) => escape(row[h])).join(","));
+    }
+    return lines.join("\n");
+  }
+
+  function download(
+    filename: string,
+    content: string,
+    type = "text/csv;charset=utf-8"
+  ) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function parseRowCount(input: string | undefined): number {
+    if (!input) return 100;
+    const n = parseInt(String(input).replace(/[^0-9]/g, ""), 10);
+    if (!Number.isFinite(n) || n <= 0) return 100;
+    return Math.min(n, 1_000_000);
+  }
+
+  async function onStartGeneration() {
+    if (!inferred) return;
+    setGenerating(true);
+    try {
+      const count = parseRowCount(prior.recordVolume);
+      const resp = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          fields: (inferred.fields || [
+            { name: "value", type: "number" },
+          ]) as Array<{
+            name: string;
+            type: "number" | "string" | "date";
+          }>,
+          distribution: inferred.distribution,
+          params: inferred.params,
+          count,
+          context: {
+            industry: prior.industry,
+            dataNeed: prior.dataNeed,
+            recordVolume: prior.recordVolume,
+            sensitive: prior.sensitive,
+            notes: prior.freeText,
+          },
+        }),
+      });
+
+      let csv = await resp.text();
+      const usedLLM =
+        resp.ok && resp.headers.get("x-generation-mode") !== "fallback-no-llm";
+      if (usedLLM) {
+        toast.success("Generating with LLM", {
+          description: `Synthesizing ${count} rows using Groq model`,
+        });
+      }
+      if (!resp.ok || !csv || csv.trim().length === 0) {
+        toast.message("Falling back to local generation", {
+          description: `Generating ${count} rows in your browser`,
+        });
+        // Fallback to local generation when LLM is unavailable or returns empty
+        const d = inferred.distribution as string;
+        const p = inferred.params || {};
+        const samplePrimary = () => {
+          if (d === "Gaussian (Normal)") {
+            const m = Number(p.mean ?? 0);
+            const s = Math.max(Number(p.stddev ?? 1), 1e-6);
+            return sampleNormal(m, s);
+          }
+          if (d === "Uniform") {
+            const a = Number(p.min ?? 0);
+            const b = Number(p.max ?? 1);
+            const lo = Math.min(a, b);
+            const hi = Math.max(a, b);
+            return sampleUniform(lo, hi);
+          }
+          if (d === "Poisson") {
+            const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+            return samplePoisson(l);
+          }
+          if (d === "Exponential") {
+            const l = Math.max(Number(p.lambda ?? 1), 1e-6);
+            return sampleExponential(l);
+          }
+          if (d === "Log-normal") {
+            const mu = Number(p.mean ?? 0);
+            const sg = Math.max(Number(p.stddev ?? 1), 1e-6);
+            return sampleLogNormal(mu, sg);
+          }
+          return sampleNormal(0, 1);
+        };
+
+        const fieldDefs = (inferred.fields || [
+          { name: "value", type: "number" },
+        ]) as Array<{
+          name: string;
+          type: string;
+        }>;
+
+        const merchants = [
+          "Amazon",
+          "Walmart",
+          "Target",
+          "Starbucks",
+          "Uber",
+          "Apple Store",
+        ];
+        const categories = [
+          "Groceries",
+          "Dining",
+          "Transport",
+          "Electronics",
+          "Health",
+          "Utilities",
+        ];
+
+        const rows: any[] = [];
+        for (let i = 0; i < count; i++) {
+          const primary = samplePrimary();
+          const r: any = {};
+          fieldDefs.forEach((f) => {
+            const nm = f.name.toLowerCase();
+            if (
+              nm === "amount" ||
+              nm === "price" ||
+              nm === "duration_seconds" ||
+              nm === "inter_arrival_seconds" ||
+              nm === "length_of_stay" ||
+              nm === "charge"
+            ) {
+              r[f.name] = format(
+                primary,
+                nm === "duration_seconds" || nm === "inter_arrival_seconds"
+                  ? 3
+                  : 2
+              );
+            } else if (nm === "timestamp" || nm === "timestamp_start") {
+              const now = Date.now();
+              r[f.name] = new Date(
+                now - Math.floor(Math.random() * 30 * 864e5)
+              ).toISOString();
+            } else if (nm === "merchant") {
+              r[f.name] =
+                merchants[Math.floor(Math.random() * merchants.length)];
+            } else if (nm === "category") {
+              r[f.name] =
+                categories[Math.floor(Math.random() * categories.length)];
+            } else if (nm === "currency") {
+              r[f.name] = "USD";
+            } else if (nm === "card_last4") {
+              r[f.name] = String(1000 + Math.floor(Math.random() * 9000));
+            } else if (nm === "channel") {
+              r[f.name] = Math.random() < 0.5 ? "card-present" : "ecom";
+            } else if (nm === "city") {
+              r[f.name] = ["San Francisco", "New York", "Austin", "Seattle"][
+                Math.floor(Math.random() * 4)
+              ];
+            } else if (nm === "country") {
+              r[f.name] = "US";
+            } else if (
+              nm === "txn_id" ||
+              nm === "order_id" ||
+              nm === "encounter_id" ||
+              nm === "call_id" ||
+              nm === "event_id"
+            ) {
+              r[f.name] = `${nm.split("_")[0]}_${Math.random()
+                .toString(36)
+                .slice(2, 10)}`;
+            } else if (nm === "source_ip" || nm === "dest_ip") {
+              r[f.name] = randomIp();
+            } else if (nm === "from_number" || nm === "to_number") {
+              r[f.name] = randomPhone();
+            } else if (nm === "diagnosis_code") {
+              r[f.name] = randomIcd10();
+            } else if (f.type === "number") {
+              r[f.name] = format(primary * (0.9 + Math.random() * 0.2), 3);
+            } else if (f.type === "date") {
+              r[f.name] = new Date(
+                Date.now() - Math.floor(Math.random() * 7 * 864e5)
+              ).toISOString();
+            } else {
+              r[f.name] = `${f.name}_${i + 1}`;
+            }
+          });
+          rows.push(r);
+        }
+        csv = toCsv(rows);
+      }
+      const safeName = (prior.dataNeed || "synthetic-data")
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const filename = `${safeName || "synthetic-data"}-${count}.csv`;
+      download(filename, csv);
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function onInfer(e: React.FormEvent<HTMLFormElement>) {
@@ -952,8 +1173,13 @@ export default function StartGenerationPage() {
                     >
                       Back
                     </Button>
-                    <Button className="pulse-glow">
-                      <Zap className="w-4 h-4 mr-2" /> Start generation
+                    <Button
+                      className="pulse-glow"
+                      disabled={generating}
+                      onClick={onStartGeneration}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />{" "}
+                      {generating ? "Generating..." : "Start generation"}
                     </Button>
                   </div>
                 </div>
