@@ -11,13 +11,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import SubTestItem from "./SubTestItem";
 import GenerateSubTestsButton from "./GenerateSubTestsButton";
+import CreateSubTestDialog from "./CreateSubTestDialog";
 
 export default async function SubTestsPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const testCaseId = parseInt(await params.id);
+  const testCaseId = parseInt((await params).id);
   const [subTests, testCase] = await Promise.all([
     getSubTestsByTestCaseId(testCaseId),
     getTestCaseById(testCaseId),
@@ -105,9 +106,13 @@ export default async function SubTestsPage({
               </p>
             </div>
           </div>
-          <div>
+          <div className="flex gap-2">
             <GenerateSubTestsButton testCaseId={testCaseId} />
           </div>
+        </div>
+
+        <div className="mb-6 flex justify-end">
+          <CreateSubTestDialog testCaseId={testCaseId} />
         </div>
 
         {subTests.length === 0 ? (
