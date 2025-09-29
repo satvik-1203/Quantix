@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import SubTestItem from "./SubTestItem";
+import GenerateSubTestsButton from "./GenerateSubTestsButton";
 
 export default async function SubTestsPage({
   params,
@@ -94,13 +95,18 @@ export default async function SubTestsPage({
 
         {/* Sub-Tests Section */}
         <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">
+                Sub-Tests ({subTests.length})
+              </h2>
+              <p className="text-muted-foreground">
+                Individual test scenarios for this test case
+              </p>
+            </div>
+          </div>
           <div>
-            <h2 className="text-2xl font-bold">
-              Sub-Tests ({subTests.length})
-            </h2>
-            <p className="text-muted-foreground">
-              Individual test scenarios for this test case
-            </p>
+            <GenerateSubTestsButton testCaseId={testCaseId} />
           </div>
         </div>
 
