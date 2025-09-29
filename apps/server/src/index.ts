@@ -1,4 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env" });
+
 import cors from "cors";
 import express from "express";
 import generateTestRouter from "./routers/generate-test/contoller";
