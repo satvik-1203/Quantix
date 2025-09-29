@@ -468,6 +468,11 @@ export default function StartGenerationPage() {
         .replace(/^-+|-+$/g, "");
       const filename = `${safeName || "synthetic-data"}-${count}.csv`;
       download(filename, csv);
+      try {
+        sessionStorage.setItem("generatedCsv", csv);
+        sessionStorage.setItem("generatedFilename", filename);
+      } catch {}
+      router.push(`/generate/start/view` as any);
     } finally {
       setGenerating(false);
     }

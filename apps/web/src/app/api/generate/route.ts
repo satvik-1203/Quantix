@@ -63,11 +63,31 @@ export async function POST(req: NextRequest) {
 
     const fieldSpec = fields.map((f) => `${f.name}:${f.type}`).join(", ");
 
-    const guidance = `You are a data synthesis agent. Produce STRICT JSON ONLY: an array of exactly ${count} objects. Each object MUST have keys: ${fields
+    const wantsCountry = fields.some((f) => f.name.toLowerCase() === "country");
+    const wantsCity = fields.some((f) => f.name.toLowerCase() === "city");
+    const wantsCurrency = fields.some(
+      (f) => f.name.toLowerCase() === "currency"
+    );
+    const wantsMerchant = fields.some(
+      (f) => f.name.toLowerCase() === "merchant"
+    );
+
+    const usCityHint = wantsCity
+      ? "Cities must be within the United States (e.g., New York, San Francisco, Austin, Seattle, Chicago, Los Angeles, Boston)."
+      : "";
+    const usCountryHint = wantsCountry
+      ? 'Set country exactly to "US" for all rows.'
+      : "";
+    const usdHint = wantsCurrency ? 'Set currency to "USD" for all rows.' : "";
+    const merchantHint = wantsMerchant
+      ? "Merchant should be a realistic U.S. merchant name (e.g., Amazon, Walmart, Target, Starbucks, Uber, Apple Store, Costco, Home Depot)."
+      : "";
+
+    const guidance = `You are a data synthesis agent.\nReturn a SINGLE JSON OBJECT ONLY in the following shape:\n{ "rows": [ { /* object 1 */ }, { /* object 2 */ }, ... ] }\nWhere rows is an array of EXACTLY ${count} objects.\nEach row MUST include keys: ${fields
       .map((f) => f.name)
-      .join(", ")}. Types: { ${fieldSpec} }.
-Values must be realistic and coherent given common domain patterns. Dates must be ISO8601 strings. Numbers must be numeric (not strings).
-Do not include any explanations, markdown, or extra text. Output JSON array only.`;
+      .join(
+        ", "
+      )}.\nTypes: { ${fieldSpec} }.\nDates must be ISO8601 strings. Numbers must be numeric (not strings).\n${usCityHint}\n${usCountryHint}\n${usdHint}\n${merchantHint}\nNo markdown, no code fences, no prose.`;
 
     // Optional schema/distribution hint
     const hint = body.distribution
@@ -90,58 +110,98 @@ Do not include any explanations, markdown, or extra text. Output JSON array only
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-specdec",
+          model: "llama-3.3-70b-versatile",
           messages,
           temperature: 0.2,
-          max_tokens: Math.min(100000, Math.max(2000, count * 30)),
+          max_tokens: Math.min(6000, Math.max(1500, count * 40)),
+          response_format: { type: "json_object" },
         }),
       }
     );
 
     if (!resp.ok) {
+      let reason = "";
+      try {
+        reason = await resp.text();
+      } catch {}
       return new Response("", {
         status: 502,
-        headers: { "content-type": "text/csv; charset=utf-8" },
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "x-generation-mode": "llm-error",
+          "x-error-status": String(resp.status),
+          "x-error-reason": reason?.slice(0, 256) || "",
+        },
       });
     }
 
     const data = await resp.json();
     let content = data?.choices?.[0]?.message?.content ?? "";
 
-    // Sanitize: strip markdown fences and extract JSON array
-    content = String(content || "").trim();
-    if (content.startsWith("```)")) {
-      // unlikely but guard broken prefix
-      content = content.replace(/^```[a-zA-Z]*\n?|```$/g, "");
-    }
-    if (content.startsWith("```")) {
-      content = content.replace(/^```[a-zA-Z]*\n?/, "").replace(/```\s*$/, "");
-    }
-    const firstBracket = content.indexOf("[");
-    const lastBracket = content.lastIndexOf("]");
-    if (
-      firstBracket !== -1 &&
-      lastBracket !== -1 &&
-      lastBracket > firstBracket
-    ) {
-      content = content.slice(firstBracket, lastBracket + 1);
-    }
-
     let rows: any[] = [];
     try {
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) rows = parsed;
-    } catch {}
+      const parsed = JSON.parse(String(content || ""));
+      if (parsed && Array.isArray(parsed.rows)) {
+        rows = parsed.rows;
+      } else if (Array.isArray(parsed)) {
+        rows = parsed;
+      }
+    } catch {
+      // Best-effort fallback: strip fences and extract JSON array
+      content = String(content || "").trim();
+      if (content.startsWith("```)")) {
+        content = content.replace(/^```[a-zA-Z]*\n?|```$/g, "");
+      }
+      if (content.startsWith("```")) {
+        content = content
+          .replace(/^```[a-zA-Z]*\n?/, "")
+          .replace(/```\s*$/, "");
+      }
+      const firstBracket = content.indexOf("[");
+      const lastBracket = content.lastIndexOf("]");
+      if (
+        firstBracket !== -1 &&
+        lastBracket !== -1 &&
+        lastBracket > firstBracket
+      ) {
+        const slice = content.slice(firstBracket, lastBracket + 1);
+        try {
+          const arr = JSON.parse(slice);
+          if (Array.isArray(arr)) rows = arr;
+        } catch {}
+      }
+    }
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return new Response("", {
         status: 500,
-        headers: { "content-type": "text/csv; charset=utf-8" },
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "x-generation-mode": "llm-parse-error",
+        },
       });
     }
 
+    // Enforce exact count: truncate or cycle to reach requested count
+    if (rows.length > count) {
+      rows = rows.slice(0, count);
+    } else if (rows.length < count && rows.length > 0) {
+      const base = rows.slice();
+      let i = 0;
+      while (rows.length < count) {
+        rows.push(base[i % base.length]);
+        i++;
+      }
+    }
+
     // Normalize rows: ensure field order and stringify dates
-    const normalized = rows.slice(0, count).map((r) => {
+    const idFieldNames = fields
+      .map((f) => f.name)
+      .filter((n) => {
+        const nm = n.toLowerCase();
+        return nm === "id" || nm.endsWith("id");
+      });
+    const normalized = rows.slice(0, count).map((r, i) => {
       const out: Record<string, any> = {};
       for (const f of fields) {
         let v = (r ?? {})[f.name];
@@ -155,18 +215,29 @@ Do not include any explanations, markdown, or extra text. Output JSON array only
         }
         out[f.name] = v;
       }
+      // Force sequential ids 0..count-1 for any id-like fields
+      idFieldNames.forEach((name) => {
+        out[name] = i;
+      });
       return out;
     });
 
     const csv = toCsv(normalized);
     return new Response(csv, {
       status: 200,
-      headers: { "content-type": "text/csv; charset=utf-8" },
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "x-generation-mode": "llm",
+      },
     });
   } catch (err) {
     return new Response("", {
       status: 500,
-      headers: { "content-type": "text/csv; charset=utf-8" },
+      headers: {
+        "content-type": "text/csv; charset=utf-8",
+        "x-generation-mode": "api-exception",
+        "x-error-message": (err as Error)?.message?.slice(0, 256) || "",
+      },
     });
   }
 }
