@@ -5,6 +5,7 @@ dotenv.config({ path: ".env" });
 import cors from "cors";
 import express from "express";
 import generateTestRouter from "./routers/generate-test/contoller";
+import callSubtestRouter from "./routers/call-subtest/controller";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/generate-test", generateTestRouter);
+app.use("/api/call-subtest", callSubtestRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

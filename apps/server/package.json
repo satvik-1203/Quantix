@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.38",
+    "@vapi-ai/server-sdk": "^0.10.2",
     "@workspace/drizzle": "workspace:*",
     "ai": "^5.0.56",
     "cors": "^2.8.5",

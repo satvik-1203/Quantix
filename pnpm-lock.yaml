@@ -17,6 +17,9 @@ importers:
       '@ai-sdk/openai':
         specifier: ^2.0.38
         version: 2.0.38(zod@4.1.8)
+      '@vapi-ai/server-sdk':
+        specifier: ^0.10.2
+        version: 0.10.2
       '@workspace/drizzle':
         specifier: workspace:*
         version: link:../../packages/drizzle
@@ -1767,6 +1770,10 @@ packages:
 
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
+
+  '@vapi-ai/server-sdk@0.10.2':
+    resolution: {integrity: sha512-+4ISX9Ej54Sx7SlsoA8VEnoi8UqOBkQHF9OpBUy126uR2DImnNju0DTweqbxnDRhY8Ao8jb+xhYrNxqkx6lTgA==}
+    engines: {node: '>=18.0.0'}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -4265,6 +4272,8 @@ snapshots:
   '@types/ws@8.18.1':
     dependencies:
       '@types/node': 22.18.3
+
+  '@vapi-ai/server-sdk@0.10.2': {}
 
   accepts@2.0.0:
     dependencies:
