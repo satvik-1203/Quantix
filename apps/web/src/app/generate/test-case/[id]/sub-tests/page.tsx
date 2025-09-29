@@ -11,11 +11,15 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import SubTestItem from "./SubTestItem";
 
-export default async function SubTestsPage({ params }: { params: { id: string } }) {
-  const testCaseId = parseInt(params.id);
+export default async function SubTestsPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const testCaseId = parseInt(await params.id);
   const [subTests, testCase] = await Promise.all([
     getSubTestsByTestCaseId(testCaseId),
-    getTestCaseById(testCaseId)
+    getTestCaseById(testCaseId),
   ]);
 
   if (!testCase) {
@@ -42,7 +46,9 @@ export default async function SubTestsPage({ params }: { params: { id: string } 
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Sub-Tests for "{testCase.name}"</h1>
+            <h1 className="text-3xl font-bold">
+              Sub-Tests for "{testCase.name}"
+            </h1>
             <p className="text-muted-foreground mt-2">
               Manage sub-tests for this test case
             </p>
@@ -78,7 +84,9 @@ export default async function SubTestsPage({ params }: { params: { id: string } 
                 <h4 className="font-semibold text-sm text-muted-foreground mb-1">
                   Created
                 </h4>
-                <p className="text-sm">{testCase.createdAt?.toLocaleDateString()}</p>
+                <p className="text-sm">
+                  {testCase.createdAt?.toLocaleDateString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -87,7 +95,9 @@ export default async function SubTestsPage({ params }: { params: { id: string } 
         {/* Sub-Tests Section */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold">Sub-Tests ({subTests.length})</h2>
+            <h2 className="text-2xl font-bold">
+              Sub-Tests ({subTests.length})
+            </h2>
             <p className="text-muted-foreground">
               Individual test scenarios for this test case
             </p>

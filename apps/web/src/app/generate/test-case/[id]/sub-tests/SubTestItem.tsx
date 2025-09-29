@@ -7,6 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface SubTest {
   id: number;
@@ -19,20 +21,49 @@ interface SubTest {
 }
 
 export default function SubTestItem({ subTest }: { subTest: SubTest }) {
+  const callSubTest = async (subTestId: number) => {
+    // await callSubTest(subTestId);
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/call-subtest`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subTestId }),
+      });
+      toast.success("Sub-test called successfully");
+    } catch (error) {
+      toast.error("Failed to call sub-test");
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{subTest.name || "Untitled Sub-Test"}</CardTitle>
-            <CardDescription>
-              Created: {subTest.createdAt?.toLocaleDateString()}
-              {subTest.updatedAt && subTest.updatedAt !== subTest.createdAt && (
-                <span className="ml-2">
-                  • Updated: {subTest.updatedAt.toLocaleDateString()}
-                </span>
-              )}
-            </CardDescription>
+          <div className="flex flex-1  justify-between items-start">
+            <div>
+              <CardTitle className="text-xl">
+                {subTest.name || "Untitled Sub-Test"}
+              </CardTitle>
+              <CardDescription>
+                Created: {subTest.createdAt?.toLocaleDateString()}
+                {subTest.updatedAt &&
+                  subTest.updatedAt !== subTest.createdAt && (
+                    <span className="ml-2">
+                      • Updated: {subTest.updatedAt.toLocaleDateString()}
+                    </span>
+                  )}
+              </CardDescription>
+            </div>
+            <div>
+              <Button
+                className="cursor-pointer"
+                onClick={() => callSubTest(subTest.id)}
+              >
+                Call Sub-Test
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
