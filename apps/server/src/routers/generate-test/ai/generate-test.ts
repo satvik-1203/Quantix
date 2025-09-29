@@ -69,7 +69,16 @@ export const generateTestCases = async (testCase: TestCaseRecord) => {
       messages: [
         {
           role: "user",
-          content: `Voice agent description: ${testCase.description}`,
+          content: `
+					
+					For now just generate 7 meaning ful test cases.
+
+					Voice agent description: ${testCase.description}
+					
+					${
+            testCase.kindOfTestCases &&
+            `and generate these type of test cases: ${testCase.kindOfTestCases}`
+          }`,
         },
       ],
     });
