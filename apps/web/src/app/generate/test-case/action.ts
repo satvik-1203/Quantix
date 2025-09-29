@@ -1,5 +1,5 @@
 "use server";
-import { db, testCases, eq } from "@workspace/drizzle";
+import { db, testCases, subTests, eq } from "@workspace/drizzle";
 
 export const createTestCase = async (formData: any) => {
   await db.insert(testCases).values({
@@ -33,4 +33,8 @@ export const getTestCaseById = async (id: number) => {
 
 export const deleteTestCase = async (id: number) => {
   await db.delete(testCases).where(eq(testCases.id, id));
+};
+
+export const getSubTestsByTestCaseId = async (testCaseId: number) => {
+  return await db.select().from(subTests).where(eq(subTests.testCaseId, testCaseId)).orderBy(subTests.createdAt);
 };

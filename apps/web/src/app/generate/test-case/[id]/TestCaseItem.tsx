@@ -32,7 +32,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateTestCase, deleteTestCase } from "../action";
-import { Edit, Save, X, Trash2 } from "lucide-react";
+import { Edit, Save, X, Trash2, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -115,16 +116,31 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{testCase.name}</CardTitle>
-            <CardDescription>
-              Created: {testCase.createdAt?.toLocaleDateString()}
-              {testCase.updatedAt && testCase.updatedAt !== testCase.createdAt && (
-                <span className="ml-2">
-                  • Updated: {testCase.updatedAt.toLocaleDateString()}
-                </span>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">{testCase.name}</CardTitle>
+                <CardDescription>
+                  Created: {testCase.createdAt?.toLocaleDateString()}
+                  {testCase.updatedAt &&
+                    testCase.updatedAt !== testCase.createdAt && (
+                      <span className="ml-2">
+                        • Updated: {testCase.updatedAt.toLocaleDateString()}
+                      </span>
+                    )}
+                </CardDescription>
+              </div>
+              {!isEditing && (
+                <Link
+                  href={`/generate/test-case/${testCase.id}/sub-tests` as any}
+                >
+                  <Button variant="ghost" size="sm">
+                    View Sub-Tests
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
               )}
-            </CardDescription>
+            </div>
           </div>
           {!isEditing && (
             <div className="flex gap-2">
@@ -136,13 +152,12 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <Dialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+              >
                 <DialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={isDeleting}
-                  >
+                  <Button variant="destructive" size="sm" disabled={isDeleting}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
@@ -151,7 +166,8 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
                   <DialogHeader>
                     <DialogTitle>Delete Test Case</DialogTitle>
                     <DialogDescription>
-                      Are you sure you want to delete "{testCase.name}"? This action cannot be undone.
+                      Are you sure you want to delete "{testCase.name}"? This
+                      action cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
