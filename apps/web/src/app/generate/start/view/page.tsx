@@ -59,6 +59,76 @@ export default function GeneratedDataViewPage() {
   }, []);
 
   const parsed = useMemo(() => parseCsv(csv), [csv]);
+  const duplicateInfo = useMemo(() => {
+    const dups: boolean[] = [];
+    const counts = new Map<string, number>();
+    const sep = "\u0001";
+    parsed.rows.forEach((r) => {
+      const key = r.join(sep);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    parsed.rows.forEach((r) => {
+      const key = r.join(sep);
+      const c = counts.get(key) || 0;
+      // mark as duplicate if this value occurs more than once
+      dups.push(c > 1);
+    });
+    const totalDuplicates = dups.filter(Boolean).length;
+    return { dups, totalDuplicates };
+  }, [parsed]);
+
+  // Schema-aware duplicate detection: prefer id-like keys, else composite
+  const [showOnlyDuplicates, setShowOnlyDuplicates] = useState(false);
+  const dupByKey = useMemo(() => {
+    const headers = parsed.headers.map((h) => h.toLowerCase());
+    const preferred = [
+      "txn_id",
+      "order_id",
+      "encounter_id",
+      "call_id",
+      "event_id",
+      "id",
+    ];
+    let keyField: string | null = null;
+    for (const k of preferred) {
+      if (headers.includes(k)) {
+        keyField = k;
+        break;
+      }
+    }
+    let composite: string[] = [];
+    if (!keyField) {
+      const candidates = ["merchant", "timestamp", "amount", "card_last4"];
+      composite = candidates.filter((c) => headers.includes(c));
+    }
+    const sep = "\u0001";
+    const keyForRow = (row: string[]) => {
+      if (keyField) return String(row[headers.indexOf(keyField)] ?? "");
+      if (composite.length > 0)
+        return composite
+          .map((c) => String(row[headers.indexOf(c)] ?? ""))
+          .join(sep);
+      return row.join(sep);
+    };
+    const counts = new Map<string, number>();
+    const indices = new Map<string, number[]>();
+    parsed.rows.forEach((r, i) => {
+      const k = keyForRow(r);
+      counts.set(k, (counts.get(k) || 0) + 1);
+      if (!indices.has(k)) indices.set(k, []);
+      indices.get(k)!.push(i);
+    });
+    const duplicateGroups = Array.from(counts.entries())
+      .filter(([, c]) => c > 1)
+      .map(([k]) => ({ key: k, rows: indices.get(k)! }));
+    const keyUsed = keyField
+      ? keyField
+      : composite.length > 0
+      ? composite.join(" + ")
+      : "entire row";
+    const isDupIndex = new Set<number>(duplicateGroups.flatMap((g) => g.rows));
+    return { keyUsed, duplicateGroups, isDupIndex };
+  }, [parsed]);
   const [judge, setJudge] = useState<null | {
     scores: {
       overall: number;
@@ -80,6 +150,18 @@ export default function GeneratedDataViewPage() {
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => router.back()}>
               Back
+            </Button>
+            <Button
+              variant={showOnlyDuplicates ? "secondary" : "outline"}
+              onClick={() => setShowOnlyDuplicates((v) => !v)}
+              disabled={parsed.rows.length === 0}
+              title={
+                dupByKey.duplicateGroups.length > 0
+                  ? `Key: ${dupByKey.keyUsed}`
+                  : "No duplicates detected by key"
+              }
+            >
+              {showOnlyDuplicates ? "Show all" : "Show only duplicates"}
             </Button>
             <Button
               disabled={!csv || judging}
@@ -141,6 +223,13 @@ export default function GeneratedDataViewPage() {
             <CardTitle className="text-base">{filename}</CardTitle>
           </CardHeader>
           <CardContent>
+            {dupByKey.duplicateGroups.length > 0 && (
+              <div className="mb-3 text-xs text-muted-foreground">
+                Duplicate check by key:{" "}
+                <span className="font-medium">{dupByKey.keyUsed}</span> —
+                groups: {dupByKey.duplicateGroups.length}
+              </div>
+            )}
             {judge && (
               <div className="mb-4 text-sm">
                 <div className="font-medium mb-1">Judge scorecard</div>
@@ -189,15 +278,39 @@ export default function GeneratedDataViewPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {parsed.rows.map((r, i) => (
-                      <tr key={i}>
-                        {parsed.headers.map((_, j) => (
-                          <td key={j} className="px-2 py-2">
-                            {r[j] ?? ""}
-                          </td>
-                        ))}
+                    {duplicateInfo.totalDuplicates > 0 && (
+                      <tr>
+                        <td
+                          colSpan={parsed.headers.length}
+                          className="px-2 py-2 text-xs text-muted-foreground"
+                        >
+                          {duplicateInfo.totalDuplicates} duplicate row
+                          {duplicateInfo.totalDuplicates === 1 ? "" : "s"}{" "}
+                          detected. Duplicates are highlighted.
+                        </td>
                       </tr>
-                    ))}
+                    )}
+                    {parsed.rows.map((r, i) => {
+                      if (showOnlyDuplicates && !dupByKey.isDupIndex.has(i))
+                        return null;
+                      const isDupRow = duplicateInfo.dups[i];
+                      return (
+                        <tr
+                          key={i}
+                          className={
+                            isDupRow
+                              ? "bg-red-50 dark:bg-red-950/30"
+                              : undefined
+                          }
+                        >
+                          {parsed.headers.map((_, j) => (
+                            <td key={j} className="px-2 py-2">
+                              {r[j] ?? ""}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

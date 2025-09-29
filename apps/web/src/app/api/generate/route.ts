@@ -87,7 +87,9 @@ export async function POST(req: NextRequest) {
       .map((f) => f.name)
       .join(
         ", "
-      )}.\nTypes: { ${fieldSpec} }.\nDates must be ISO8601 strings. Numbers must be numeric (not strings).\n${usCityHint}\n${usCountryHint}\n${usdHint}\n${merchantHint}\nNo markdown, no code fences, no prose.`;
+      )}.\nTypes: { ${fieldSpec} }.\nDates must be ISO8601 strings. Numbers must be numeric (not strings).\n${usCityHint}\n${usCountryHint}\n${usdHint}\n${merchantHint}\nAdditionally, if any id-like field exists (id, txn_id, order_id, encounter_id, call_id, event_id), assign ids strictly sequentially from 0 to ${
+      count - 1
+    } with no gaps or duplicates. Rows may share non-id values, but ids must be unique and sequential.\nNo markdown, no code fences, no prose.`;
 
     // Optional schema/distribution hint
     const hint = body.distribution

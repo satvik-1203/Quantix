@@ -69,7 +69,7 @@ Scoring guidance:
 - realism: are values plausible (amount ranges, timestamps, categories, merchant names)?
 - us_constraints: are country/cities/currency consistent with USA (country=US, currency=USD, cities in US)?
 - schema_consistency: headers vs rows alignment, data types consistent across rows.
-- anomalies: duplicates, outliers, missing values; higher score if fewer problems.
+- anomalies: outliers, missing values; higher score if fewer problems. IMPORTANT: Do NOT claim or penalize for duplicate transactions if an id-like field (e.g., id, txn_id, order_id, encounter_id, call_id, event_id) is present and the ids are unique and strictly sequential (0..N-1). Treat such rows as unique regardless of identical non-id values.
 Compute overall as a sensible blend of the others. Output strictly valid JSON; no markdown.`;
 
     const messages = [
