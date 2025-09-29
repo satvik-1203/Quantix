@@ -23,6 +23,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createTestCase } from "./action";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -40,6 +42,8 @@ const formSchema = z.object({
 });
 
 export default function TestCaseGeneratorPage() {
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,15 +54,33 @@ export default function TestCaseGeneratorPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    // TODO: Handle form submission
-    createTestCase(values);
+    try {
+      await createTestCase(values);
+      // Redirect to the dashboard page after successful creation
+      router.push("/generate/test-case/list");
+    } catch (error) {
+      console.error("Failed to create test case:", error);
+    }
   }
 
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-3xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Test Case Generator</h1>
+            <p className="text-muted-foreground mt-2">
+              Generate test cases with specific distributions and parameters for your voice bot.
+            </p>
+          </div>
+          <Link href="/generate/test-case/list">
+            <Button variant="outline">
+              Show Existing Test Cases
+            </Button>
+          </Link>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Test Case Generator</CardTitle>

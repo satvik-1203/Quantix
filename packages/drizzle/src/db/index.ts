@@ -28,3 +28,4 @@ export const db = drizzle(sql, {
 });
 
 export * from "./schema";
+export { eq } from "drizzle-orm";
