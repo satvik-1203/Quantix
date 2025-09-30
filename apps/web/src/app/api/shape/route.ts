@@ -211,14 +211,42 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify(heuristicShape(body)), {
-        status: 200,
-        headers: { "content-type": "application/json" },
+      const result: ShapeResponse = {
+        distribution: "Gaussian (Normal)",
+        params: { mean: 0, stddev: 1 },
+        fields: [{ name: "value", type: "number" }],
+        source: "error",
+        explanation:
+          "GROQ_API_KEY is missing. Set the environment variable to enable LLM-based inference.",
+      };
+      return new Response(JSON.stringify(result), {
+        status: 400,
+        headers: {
+          "content-type": "application/json",
+          "x-shape-mode": "error-missing-api-key",
+          "x-error-reason": "Missing GROQ_API_KEY",
+        },
       });
     }
 
     // Use Groq Chat Completions API (OpenAI-compatible)
-    const prompt = `You are a data synthesis expert. Given: industry=${body.industry}, purpose=${body.dataNeed}, volume=${body.recordVolume}, sensitive=${body.sensitive}, notes=${body.notes}. Suggest ONE primary univariate distribution (choose exactly one of: "Gaussian (Normal)", "Uniform", "Poisson", "Exponential", "Log-normal", "Custom mixture"). Include sensible numeric parameters. Reply as compact JSON only with keys: distribution, params (object with numeric fields among mean,stddev,min,max,lambda), fields (array with typed columns appropriate for the requested domain; include names like amount/timestamp/merchant for transactions; price/quantity for ecommerce; encounter_id/diagnosis_code/charge for healthcare; duration_seconds/from_number for telecom; source_ip/dest_ip/ports/protocol/action/severity for cybersecurity. Types must be number|string|date), explanation.`;
+    const prompt = `You are a data synthesis expert. Given: industry=${body.industry}, purpose=${body.dataNeed}, volume=${body.recordVolume}, sensitive=${body.sensitive}, notes=${body.notes}.
+
+Return a STRICT JSON object with keys: distribution, params, fields, explanation.
+- distribution: ONE of ["Gaussian (Normal)", "Uniform", "Poisson", "Exponential", "Log-normal", "Custom mixture"]. Choose the primary distribution governing numeric magnitudes in this dataset.
+- params: object including only numeric fields among {mean,stddev,min,max,lambda} appropriate for the chosen distribution.
+- fields: array of objects { name, type } where type ∈ {number|string|date}. Include realistic domain columns.
+
+Per-column guidance (very important): choose names and implied distributions consistent with real-world data, for example:
+- amount, price, charge, revenue: positive, right-skewed (Log-normal or Gamma). Avoid negatives.
+- quantity, count, events: non-negative counts (Poisson or Negative Binomial). If you choose Poisson, set lambda.
+- duration_seconds, inter_arrival_seconds, dwell_time: positive continuous; inter-arrival often Exponential; durations may be Log-normal.
+- timestamp, timestamp_start, date: ISO8601 strings; consider realistic ranges.
+- category, merchant, channel, department, city, country, protocol, action: categorical strings; frequency should be imbalanced (multinomial/Zipf-like) not uniform.
+- ids (id, txn_id, order_id, encounter_id, call_id, event_id): strings or numbers; downstream generator will set sequential numeric ids 0..N-1 if numeric.
+- currency must be "USD" if present; country "US"; cities must be US cities.
+
+Your output must be valid JSON only (no markdown, no backticks).`;
 
     const resp = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -244,21 +272,67 @@ export async function POST(req: NextRequest) {
     );
 
     if (!resp.ok) {
-      return new Response(JSON.stringify(heuristicShape(body)), {
-        status: 200,
-        headers: { "content-type": "application/json" },
+      const result: ShapeResponse = {
+        distribution: "Gaussian (Normal)",
+        params: { mean: 0, stddev: 1 },
+        fields: [{ name: "value", type: "number" }],
+        source: "error",
+        explanation: `LLM request failed with status ${resp.status}. Using safe default.`,
+      };
+      return new Response(JSON.stringify(result), {
+        status: 502,
+        headers: {
+          "content-type": "application/json",
+          "x-shape-mode": "error-llm-bad-response",
+          "x-error-status": String(resp.status),
+        },
       });
     }
 
     const data = await resp.json();
-    const content = data?.choices?.[0]?.message?.content ?? "";
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return new Response(JSON.stringify(heuristicShape(body)), {
-        status: 200,
-        headers: { "content-type": "application/json" },
+    const raw = data?.choices?.[0]?.message?.content ?? "";
+
+    // Robust JSON extraction: strip fences, extract first valid JSON object
+    function extractJson(text: string): any | null {
+      let t = text.trim();
+      // strip markdown fences
+      if (t.startsWith("```")) {
+        t = t
+          .replace(/^```[a-zA-Z]*\n?/, "")
+          .replace(/```\s*$/, "")
+          .trim();
+      }
+      // if it's already valid JSON
+      try {
+        return JSON.parse(t);
+      } catch {}
+      // try to locate first {...} block
+      const first = t.indexOf("{");
+      const last = t.lastIndexOf("}");
+      if (first !== -1 && last !== -1 && last > first) {
+        const slice = t.slice(first, last + 1);
+        try {
+          return JSON.parse(slice);
+        } catch {}
+      }
+      return null;
+    }
+
+    const parsed: any = extractJson(raw);
+    if (!parsed) {
+      const result: ShapeResponse = {
+        distribution: "Gaussian (Normal)",
+        params: { mean: 0, stddev: 1 },
+        fields: [{ name: "value", type: "number" }],
+        source: "error",
+        explanation: "LLM returned unparseable content. Using safe default.",
+      };
+      return new Response(JSON.stringify(result), {
+        status: 502,
+        headers: {
+          "content-type": "application/json",
+          "x-shape-mode": "error-unparseable-json",
+        },
       });
     }
 
@@ -272,7 +346,10 @@ export async function POST(req: NextRequest) {
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-shape-mode": "groq",
+      },
     });
   } catch (err) {
     const result: ShapeResponse = {
@@ -283,8 +360,11 @@ export async function POST(req: NextRequest) {
       explanation: "Failed to infer shape; returned safe default.",
     };
     return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { "content-type": "application/json" },
+      status: 500,
+      headers: {
+        "content-type": "application/json",
+        "x-shape-mode": "error-exception",
+      },
     });
   }
 }

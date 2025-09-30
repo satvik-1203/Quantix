@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -43,8 +44,8 @@ const INDUSTRIES = [
 
 const DATA_NEEDS = [
   "Model training",
-  "Model Finetuning",
-  "Research/Experimentation",
+  "Model finetuning",
+  "Research/experimentation",
 ] as const;
 
 export default function GuidedGeneratorPage() {
@@ -176,11 +177,15 @@ export default function GuidedGeneratorPage() {
 
               {/* Free text */}
               <div className="space-y-2">
-                <Label className="text-sm">Anything else we should know?</Label>
-                <Input
+                <Label className="text-sm">
+                  Tell us a bit more about your scenario
+                </Label>
+                <Textarea
                   placeholder="Domain specifics, mandatory fields, correlations, etc."
                   value={freeText}
-                  onChange={(e) => setFreeText(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setFreeText(e.target.value)
+                  }
                 />
               </div>
 
