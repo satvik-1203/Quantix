@@ -43,11 +43,8 @@ const INDUSTRIES = [
 
 const DATA_NEEDS = [
   "Model training",
-  "Benchmarking/testing",
-  "Prototyping",
-  "Privacy-safe sharing",
-  "Analytics/BI",
-  "QA for pipelines",
+  "Model Finetuning",
+  "Research/Experimentation",
 ] as const;
 
 export default function GuidedGeneratorPage() {
