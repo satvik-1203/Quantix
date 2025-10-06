@@ -1,6 +1,5 @@
 "use server";
-import { db, testCases, subTests } from "@workspace/drizzle";
-import { eq } from "drizzle-orm";
+import { db, testCases, subTests, eq } from "@workspace/drizzle";
 
 export const createTestCase = async (formData: any) => {
   await db.insert(testCases).values({

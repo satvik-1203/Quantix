@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+export * from "drizzle-orm";
 
 const HARD_CODED_DATABASE_URL =
   "postgresql://postgres.reallfgutstgjjtaqjfx:L94EHWcEiNwJedZH@aws-1-us-east-1.pooler.supabase.com:6543/postgres";
