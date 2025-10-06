@@ -10,7 +10,17 @@ import {
 import Link from "next/link";
 import TestCaseItem from "./TestCaseItem";
 
-export default async function TestCasesPage({ params }: { params: { id: string } }) {
+type TestCase = {
+  id: number;
+  name: string | null;
+  description: string | null;
+  kindOfTestCases: string | null;
+  testPhoneNumber: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
+
+export default async function TestCasesPage() {
   const testCases = await getAllTestCases();
 
   return (
@@ -32,7 +42,9 @@ export default async function TestCasesPage({ params }: { params: { id: string }
           <Card>
             <CardContent className="pt-6">
               <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">No test cases yet</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  No test cases yet
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Create your first test case to get started
                 </p>
@@ -44,7 +56,7 @@ export default async function TestCasesPage({ params }: { params: { id: string }
           </Card>
         ) : (
           <div className="space-y-4">
-            {testCases.map((testCase) => (
+            {testCases.map((testCase: TestCase) => (
               <TestCaseItem key={testCase.id} testCase={testCase} />
             ))}
           </div>

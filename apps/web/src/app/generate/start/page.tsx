@@ -80,6 +80,8 @@ function format(n: number, digits = 3): string {
   return Number.isFinite(n) ? n.toFixed(digits) : "—";
 }
 
+export const dynamic = "force-dynamic";
+
 export default function StartGenerationPage() {
   const params = useSearchParams();
   const router = useRouter();

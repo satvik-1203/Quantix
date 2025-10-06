@@ -29,7 +29,7 @@ export const subTests = pgTable(
     updatedAt: timestamp("updated_at").defaultNow(),
     expected: text("expected"),
   },
-  (table) => [index("test_case_id_index").on(table.testCaseId)]
+  (table: any) => [index("test_case_id_index").on(table.testCaseId)]
 );
 
 export type TestCaseRecord = typeof testCases.$inferSelect;
