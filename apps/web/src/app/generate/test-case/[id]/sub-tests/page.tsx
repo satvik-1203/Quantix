@@ -10,15 +10,26 @@ import {
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import SubTestItem from "./SubTestItem";
+
+type SubTest = {
+  id: number;
+  name: string | null;
+  description: string | null;
+  testCaseId: number | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  expected: string | null;
+};
 import GenerateSubTestsButton from "./GenerateSubTestsButton";
 import CreateSubTestDialog from "./CreateSubTestDialog";
 
 export default async function SubTestsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const testCaseId = parseInt((await params).id);
+  const { id } = await params;
+  const testCaseId = Number.parseInt(id, 10);
   const [subTests, testCase] = await Promise.all([
     getSubTestsByTestCaseId(testCaseId),
     getTestCaseById(testCaseId),
@@ -128,7 +139,7 @@ export default async function SubTestsPage({
           </Card>
         ) : (
           <div className="space-y-4">
-            {subTests.map((subTest) => (
+            {subTests.map((subTest: SubTest) => (
               <SubTestItem key={subTest.id} subTest={subTest} />
             ))}
           </div>

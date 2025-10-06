@@ -1,5 +1,6 @@
 import { getVapiClient } from "@/lib/vapi";
-import { db, eq, subTests, testCases } from "@workspace/drizzle";
+import { db, subTests, testCases } from "@workspace/drizzle";
+import { eq } from "drizzle-orm";
 import { Router } from "express";
 
 const router: Router = Router();
@@ -29,7 +30,11 @@ router.post("/", async (req, res) => {
 
   const taskDescription = subTestData.sub_tests.description;
 
-  // const taskExpected = subTestData.sub_tests.expected;
+  // Inject fulfillment-mode exclusivity guidance directly into the task given to the assistant.
+  const guardrailHeader =
+    "System policy: fulfillment_mode must be exactly one of ['pickup','delivery','dine_in']. If the user mentions multiple modes, ask them to choose one before proceeding. Do not proceed to checkout while ambiguous. If the user switches modes, clear conflicting fields from the previous mode and reconfirm. In confirmations, always state the chosen mode and omit any other mode.";
+
+  const taskWithGuardrails = `${guardrailHeader}\n\nTask: ${taskDescription}`;
 
   const result = await vapi.calls.create({
     assistantId: "e6d0707e-8347-4c09-a93f-af1eed22fffe",
@@ -40,7 +45,7 @@ router.post("/", async (req, res) => {
     assistantOverrides: {
       variableValues: {
         description: callingAgentDescription,
-        task: taskDescription,
+        task: taskWithGuardrails,
       },
     },
   });
