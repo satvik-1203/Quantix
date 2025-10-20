@@ -7,6 +7,7 @@ export const createTestCase = async (formData: any) => {
     description: formData.description,
     kindOfTestCases: formData.kindOfTestCases,
     testPhoneNumber: formData.testPhoneNumber,
+    email: formData.email,
   });
 };
 
@@ -22,6 +23,7 @@ export const updateTestCase = async (id: number, formData: any) => {
       description: formData.description,
       kindOfTestCases: formData.kindOfTestCases,
       testPhoneNumber: formData.testPhoneNumber,
+      email: formData.email,
       updatedAt: new Date(),
     })
     .where(eq(testCases.id, id));

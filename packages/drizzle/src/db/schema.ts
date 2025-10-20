@@ -13,6 +13,7 @@ export const testCases = pgTable("test_cases", {
   name: varchar("name", { length: 255 }),
   description: text("description"),
   kindOfTestCases: text("kind_of_test_cases"),
+  email: text("email"),
   testPhoneNumber: varchar("test_phone_number", { length: 20 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

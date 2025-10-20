@@ -95,6 +95,12 @@ export default async function SubTestsPage({
               </div>
               <div>
                 <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                  Email Address
+                </h4>
+                <p className="text-sm">{testCase.email}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
                   Created
                 </h4>
                 <p className="text-sm">

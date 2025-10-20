@@ -16,6 +16,7 @@ type TestCase = {
   description: string | null;
   kindOfTestCases: string | null;
   testPhoneNumber: string | null;
+  email: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 };

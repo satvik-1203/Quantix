@@ -39,6 +39,9 @@ const formSchema = z.object({
   testPhoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, {
     message: "Please enter a valid phone number.",
   }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
 });
 
 export default function TestCaseGeneratorPage() {
@@ -51,6 +54,7 @@ export default function TestCaseGeneratorPage() {
       description: "",
       kindOfTestCases: "",
       testPhoneNumber: "",
+      email: "",
     },
   });
 
@@ -72,13 +76,12 @@ export default function TestCaseGeneratorPage() {
           <div>
             <h1 className="text-3xl font-bold">Test Case Generator</h1>
             <p className="text-muted-foreground mt-2">
-              Generate test cases with specific distributions and parameters for your voice bot.
+              Generate test cases with specific distributions and parameters for
+              your voice bot.
             </p>
           </div>
           <Link href="/generate/test-case/list">
-            <Button variant="outline">
-              Show Existing Test Cases
-            </Button>
+            <Button variant="outline">Show Existing Test Cases</Button>
           </Link>
         </div>
         <Card>
@@ -166,6 +169,27 @@ export default function TestCaseGeneratorPage() {
                       <FormDescription>
                         Phone number to use for testing the voice bot
                         interactions.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="test@example.com"
+                          type="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Email address for test notifications and results.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

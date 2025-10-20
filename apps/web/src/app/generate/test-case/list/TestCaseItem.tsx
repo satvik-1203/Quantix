@@ -48,6 +48,9 @@ const formSchema = z.object({
   testPhoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, {
     message: "Please enter a valid phone number.",
   }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
 });
 
 interface TestCase {
@@ -56,6 +59,7 @@ interface TestCase {
   description: string | null;
   kindOfTestCases: string | null;
   testPhoneNumber: string | null;
+  email: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -73,6 +77,7 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
       description: testCase.description || "",
       kindOfTestCases: testCase.kindOfTestCases || "",
       testPhoneNumber: testCase.testPhoneNumber || "",
+      email: testCase.email || "",
     },
   });
 
@@ -95,6 +100,7 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
       description: testCase.description || "",
       kindOfTestCases: testCase.kindOfTestCases || "",
       testPhoneNumber: testCase.testPhoneNumber || "",
+      email: testCase.email || "",
     });
     setIsEditing(false);
   };
@@ -259,6 +265,24 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="test@example.com"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="flex gap-2">
                 <Button type="submit" disabled={isLoading}>
                   <Save className="h-4 w-4 mr-2" />
@@ -295,6 +319,12 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
                 Test Phone Number
               </h4>
               <p className="text-sm">{testCase.testPhoneNumber}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm text-muted-foreground mb-1">
+                Email Address
+              </h4>
+              <p className="text-sm">{testCase.email}</p>
             </div>
           </div>
         )}
