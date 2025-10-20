@@ -19,6 +19,7 @@
     "@workspace/drizzle": "workspace:*",
     "ai": "^5.0.56",
     "cors": "^2.8.5",
+    "@workspace/common": "workspace:*",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.2",
     "express": "^5.1.0",

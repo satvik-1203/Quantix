@@ -20,6 +20,9 @@ importers:
       '@vapi-ai/server-sdk':
         specifier: ^0.10.2
         version: 0.10.2
+      '@workspace/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@workspace/drizzle':
         specifier: workspace:*
         version: link:../../packages/drizzle
@@ -108,6 +111,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.85.5
         version: 5.87.4(react@19.1.0)
+      '@workspace/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@workspace/drizzle':
         specifier: workspace:*
         version: link:../../packages/drizzle
@@ -184,6 +190,28 @@ importers:
       zod:
         specifier: ^4.1.8
         version: 4.1.8
+
+  packages/common:
+    dependencies:
+      agentmail:
+        specifier: ^0.0.72
+        version: 0.0.72
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.11
+        version: 22.18.3
+      drizzle-kit:
+        specifier: ^0.31.2
+        version: 0.31.4
+      tsdown:
+        specifier: ^0.14.1
+        version: 0.14.2(typescript@5.9.2)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.20.5
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.2
 
   packages/drizzle:
     dependencies:
@@ -1891,6 +1919,10 @@ packages:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  agentmail@0.0.72:
+    resolution: {integrity: sha512-ajKMw/rWEYkr956pRLrggnUcql+cX1zTtalmMk1d5h8wvuaozjUolOB2cryom87jl+6eyc/cqqzJnzwOdpKPMw==}
+    engines: {node: '>=18.0.0'}
 
   ai@5.0.56:
     resolution: {integrity: sha512-Rl++Ogg6DxzFkVHAOJZzhqcqvqtBLGOP9mMxJOGr2EJWj5HH5zjqDcnRh6x5vBoca5kj/Gd0rvUZFMnyI+sRiw==}
@@ -4456,6 +4488,13 @@ snapshots:
       acorn: 8.15.0
 
   acorn@8.15.0: {}
+
+  agentmail@0.0.72:
+    dependencies:
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   ai@5.0.56(zod@4.1.8):
     dependencies:
