@@ -44,6 +44,7 @@ router.post("/", async (req, res) => {
     phoneNumberId: "61077b28-602c-4417-9155-3b0ef6cb2d88",
     assistantOverrides: {
       variableValues: {
+        test_id: subTestData.sub_tests.id,
         description: callingAgentDescription,
         task: taskWithGuardrails,
       },
@@ -51,6 +52,29 @@ router.post("/", async (req, res) => {
   });
 
   res.json({ result });
+});
+
+router.get("/:subTestId", async (req, res) => {
+  const vapi = getVapiClient();
+  const { subTestId } = req.params;
+
+  try {
+    // Fetch all calls from Vapi
+    const calls = await vapi.calls.list();
+
+    // Filter calls by test_id (which corresponds to subTestId)
+    const filteredCalls = calls.filter((call: any) => {
+      // Check if the call has variableValues and if test_id matches
+      return (
+        call.assistantOverrides?.variableValues?.test_id === parseInt(subTestId)
+      );
+    });
+
+    res.json({ calls: filteredCalls });
+  } catch (error) {
+    console.error("Error fetching calls:", error);
+    res.status(500).json({ error: "Failed to fetch calls" });
+  }
 });
 
 export default router;
