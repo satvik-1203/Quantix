@@ -20,7 +20,9 @@ export default function CreateSubTestDialog({ testCaseId }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Sub-Test</Button>
+        <Button size="sm" variant="outline">
+          Add Sub-Test
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

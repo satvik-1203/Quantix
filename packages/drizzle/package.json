@@ -20,7 +20,8 @@
   "license": "ISC",
   "dependencies": {
     "drizzle-orm": "^0.44.2",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "@workspace/common": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.11",

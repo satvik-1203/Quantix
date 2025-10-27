@@ -1,5 +1,7 @@
 import { getAllTestCases } from "../action";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -21,43 +23,120 @@ type TestCase = {
   updatedAt: Date | null;
 };
 
-export default async function TestCasesPage() {
-  const testCases = await getAllTestCases();
+type SearchParams = {
+  q?: string;
+  sort?: "recent" | "updated" | "name";
+};
+
+export default async function TestCasesPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const params = searchParams ?? {};
+  const query = (params.q ?? "").trim();
+  const sort = (params.sort as SearchParams["sort"]) ?? "recent";
+
+  const all = await getAllTestCases();
+
+  const filtered = all.filter((t: TestCase) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (
+      (t.name ?? "").toLowerCase().includes(q) ||
+      (t.description ?? "").toLowerCase().includes(q) ||
+      (t.kindOfTestCases ?? "").toLowerCase().includes(q) ||
+      (t.email ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const toDate = (d: unknown): number => {
+    if (!d) return 0;
+    const date = d instanceof Date ? d : new Date(String(d));
+    return date.getTime() || 0;
+  };
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "name") {
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    }
+    if (sort === "updated") {
+      return toDate(b.updatedAt) - toDate(a.updatedAt);
+    }
+    return toDate(b.createdAt) - toDate(a.createdAt);
+  });
+
+  const count = sorted.length;
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Test Cases</h1>
-            <p className="text-muted-foreground mt-2">
-              Manage your voice bot test cases
-            </p>
+    <div className="container mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8 rounded-xl border bg-gradient-to-b from-muted/40 to-background p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+                Test Cases
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Create, search, and manage voice bot test suites
+              </p>
+            </div>
+            <Badge variant="secondary" className="h-7 px-3 text-sm">
+              {count}
+            </Badge>
           </div>
-          <Link href="/generate/test-case">
-            <Button>New Test</Button>
-          </Link>
+
+          <div className="mt-6">
+            <form className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex w-full items-center gap-3">
+                <Input
+                  name="q"
+                  defaultValue={query}
+                  placeholder="Search by name, description, or email"
+                  className="w-full"
+                />
+                <select
+                  name="sort"
+                  defaultValue={sort}
+                  className="h-10 rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="recent">Newest</option>
+                  <option value="updated">Recently Updated</option>
+                  <option value="name">Name (A–Z)</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="submit" variant="default">
+                  Apply
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/generate/test-case/list">Reset</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/generate/test-case">New Test</Link>
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {testCases.length === 0 ? (
+        {count === 0 ? (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-semibold mb-2">
-                  No test cases yet
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first test case to get started
-                </p>
-                <Link href="/generate/test-case">
-                  <Button>Create Test Case</Button>
-                </Link>
-              </div>
+            <CardHeader className="text-center">
+              <CardTitle>No test cases yet</CardTitle>
+              <CardDescription>
+                Create your first test case to get started
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <Button asChild>
+                <Link href="/generate/test-case">Create Test Case</Link>
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {testCases.map((testCase: TestCase) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sorted.map((testCase: TestCase) => (
               <TestCaseItem key={testCase.id} testCase={testCase} />
             ))}
           </div>

@@ -26,13 +26,13 @@ export default function CallItem({ call }: CallItemProps) {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-500/15 text-green-400 border border-green-500/30";
       case "failed":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500/15 text-red-400 border border-red-500/30";
       case "in-progress":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-500/15 text-blue-400 border border-blue-500/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-foreground/10 text-foreground/80 border border-foreground/20";
     }
   };
 
@@ -83,16 +83,18 @@ export default function CallItem({ call }: CallItemProps) {
         </div>
 
         {call.summary && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 border-t border-border/60">
             <p className="text-muted-foreground text-xs mb-1">Summary</p>
-            <p className="text-sm">{call.summary}</p>
+            <p className="text-sm leading-relaxed">{call.summary}</p>
           </div>
         )}
 
         {call.transcript && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 border-t border-border/60">
             <p className="text-muted-foreground text-xs mb-1">Transcript</p>
-            <p className="text-sm line-clamp-3">{call.transcript}</p>
+            <p className="text-sm line-clamp-3 leading-relaxed">
+              {call.transcript}
+            </p>
           </div>
         )}
       </CardContent>

@@ -4,11 +4,14 @@ import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-interface Props {
+interface Props extends React.ComponentProps<typeof Button> {
   testCaseId: number;
 }
 
-const GenerateSubTestsButton: React.FC<Props> = ({ testCaseId }) => {
+const GenerateSubTestsButton: React.FC<Props> = ({
+  testCaseId,
+  ...buttonProps
+}) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerateSubTests = async () => {
@@ -38,7 +41,12 @@ const GenerateSubTestsButton: React.FC<Props> = ({ testCaseId }) => {
   };
 
   return (
-    <Button onClick={handleGenerateSubTests} disabled={isLoading}>
+    <Button
+      onClick={handleGenerateSubTests}
+      disabled={isLoading}
+      size="sm"
+      {...buttonProps}
+    >
       {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
       Generate Sub-Tests
     </Button>

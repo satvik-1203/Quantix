@@ -6,7 +6,9 @@ import {
   timestamp,
   integer,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
+import type { LlmJudgeEmailTestSchemaType } from "@workspace/common";
 
 export const testCases = pgTable("test_cases", {
   id: serial("id").primaryKey(),
@@ -32,6 +34,31 @@ export const subTests = pgTable(
   },
   (table: any) => [index("test_case_id_index").on(table.testCaseId)]
 );
-
+export const subTextActivity = pgTable(
+  "sub_text_activity",
+  {
+    id: serial("id").primaryKey(),
+    subTestId: integer("sub_test_id").references(() => subTests.id),
+    type: text().$type<"EMAIL" | "PHONE">(),
+    status: text().$type<"PENDING" | "SUCCESS" | "FAILED">(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+    metadata: jsonb("metadata").$type<
+      | {
+          threadId: string;
+          messageData: LlmJudgeEmailTestSchemaType | {};
+        }
+      | {
+          callId: string;
+          messageData: Record<string, any>;
+        }
+    >(),
+    misc_id: text("misc_id"),
+  },
+  (table: any) => [index("sub_test_id_index").on(table.subTestId)]
+);
+export type SubTextActivityRecord = typeof subTextActivity.$inferSelect;
 export type TestCaseRecord = typeof testCases.$inferSelect;
 export type SubTestRecord = typeof subTests.$inferSelect;

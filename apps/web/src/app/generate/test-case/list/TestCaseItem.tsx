@@ -32,7 +32,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateTestCase, deleteTestCase } from "../action";
-import { Edit, Save, X, Trash2, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  Save,
+  X,
+  Trash2,
+  ChevronRight,
+  Calendar,
+  Phone,
+  Mail,
+  Tag,
+} from "lucide-react";
 import Link from "next/link";
 
 const formSchema = z.object({
@@ -121,79 +131,90 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">{testCase.name}</CardTitle>
-                <CardDescription>
-                  Created: {testCase.createdAt?.toLocaleDateString()}
-                  {testCase.updatedAt &&
-                    testCase.updatedAt !== testCase.createdAt && (
-                      <span className="ml-2">
-                        • Updated: {testCase.updatedAt.toLocaleDateString()}
-                      </span>
-                    )}
-                </CardDescription>
-              </div>
-              {!isEditing && (
-                <Link
-                  href={`/generate/test-case/${testCase.id}/sub-tests` as any}
-                >
-                  <Button variant="ghost" size="sm">
-                    View Sub-Tests
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-              )}
+            <div>
+              <CardTitle className="text-xl">{testCase.name}</CardTitle>
+              <CardDescription>
+                Created: {testCase.createdAt?.toLocaleDateString()}
+                {testCase.updatedAt &&
+                  testCase.updatedAt !== testCase.createdAt && (
+                    <span className="ml-2">
+                      • Updated: {testCase.updatedAt.toLocaleDateString()}
+                    </span>
+                  )}
+              </CardDescription>
             </div>
           </div>
           {!isEditing && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-              <Dialog
-                open={isDeleteDialogOpen}
-                onOpenChange={setIsDeleteDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="destructive" size="sm" disabled={isDeleting}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Test Case</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to delete "{testCase.name}"? This
-                      action cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDeleteDialogOpen(false)}
-                      disabled={isDeleting}
-                    >
-                      Cancel
-                    </Button>
+            <div className="flex flex-col items-end gap-2 w-[260px] max-w-full">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  aria-label="Edit test case"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Dialog
+                  open={isDeleteDialogOpen}
+                  onOpenChange={setIsDeleteDialogOpen}
+                >
+                  <DialogTrigger asChild>
                     <Button
                       variant="destructive"
-                      onClick={handleDelete}
+                      size="sm"
                       disabled={isDeleting}
                     >
-                      {isDeleting ? "Deleting..." : "Delete"}
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Test Case</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete "{testCase.name}"? This
+                        action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDeleteDialogOpen(false)}
+                        disabled={isDeleting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <Button
+                asChild
+                variant="secondary"
+                size="sm"
+                className="gap-1 w-full"
+              >
+                <Link
+                  href={`/generate/test-case/${testCase.id}/sub-tests`}
+                  aria-label={`View sub-tests for ${
+                    testCase.name ?? "test case"
+                  }`}
+                >
+                  View Sub-Tests
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           )}
         </div>
@@ -301,31 +322,47 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
             </form>
           </Form>
         ) : (
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                Description
-              </h4>
-              <p className="text-sm">{testCase.description}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Created</span>
+              <span className="text-foreground">
+                {testCase.createdAt?.toLocaleDateString()}
+              </span>
             </div>
-            <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                Kind of Test Cases
-              </h4>
-              <p className="text-sm">{testCase.kindOfTestCases}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                Test Phone Number
-              </h4>
-              <p className="text-sm">{testCase.testPhoneNumber}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                Email Address
-              </h4>
-              <p className="text-sm">{testCase.email}</p>
-            </div>
+            {testCase.updatedAt && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>Updated</span>
+                <span className="text-foreground">
+                  {testCase.updatedAt.toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            {testCase.testPhoneNumber && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-4 w-4" />
+                <span className="text-foreground truncate">
+                  {testCase.testPhoneNumber}
+                </span>
+              </div>
+            )}
+            {testCase.email && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <span className="text-foreground truncate">
+                  {testCase.email}
+                </span>
+              </div>
+            )}
+            {testCase.kindOfTestCases && (
+              <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
+                <Tag className="h-4 w-4" />
+                <span className="text-foreground line-clamp-1">
+                  {testCase.kindOfTestCases}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

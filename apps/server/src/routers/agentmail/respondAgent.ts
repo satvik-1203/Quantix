@@ -1,17 +1,22 @@
 import * as ai from "ai";
 import { openai } from "@ai-sdk/openai";
-import { AgentMailTypes } from "@workspace/common";
+import { AgentMail, AgentMailTypes } from "@workspace/common";
 import type { SubTestRecord, TestCaseRecord } from "@workspace/drizzle";
 import { z } from "zod";
 
 export const respondAgent = async (
-  prevMessages: AgentMailTypes.AgentMailMessage[],
+  prevMessages: AgentMail.AgentMail.Message[],
   newMessage: AgentMailTypes.AgentMailMessage,
   context?: { subTest?: SubTestRecord | null; testCase?: TestCaseRecord | null }
 ) => {
-  const model = openai("gpt-5-mini");
+  const model = openai("gpt-4.1");
 
   const schema = z.object({
+    "01_thinking": z
+      .string()
+      .describe(
+        "Your thinking process, including whether we need to start evaluation based on the conversation state"
+      ),
     subject: z
       .string()
       .max(78)
@@ -24,15 +29,20 @@ export const respondAgent = async (
       .describe(
         "Plain-text reply body. 1-4 short paragraphs. No markdown. No signature. If a reply is not warranted, return exactly NO_RESPONSE."
       ),
+    startEvaluation: z
+      .boolean()
+      .describe("Whether to start the evaluation of the test case"),
   });
 
   const system = `You output strictly valid JSON only. No markdown.
+
 
 ROLE & VOICE:
 - You are the end-user/customer replying within an existing email thread to a service provider.
 - Write from the customer's perspective in first person ("I"/"we") and address the provider as "you".
 - Never speak on behalf of the provider. Do not confirm reservations, policies, or offerings for them.
 - Your job is to ask, select, confirm preferences, or provide information as the customer.
+- Don't mess up the roles, your email or you are the agent for (agent mail email) and the other email is the customer/agent we are responding to.
 
 QUALITY:
 - Be concise, specific to the latest message, and solution-oriented.
@@ -48,6 +58,20 @@ ROLE-INVERSION GUARD:
 NO-REPLY RULE:
 - If the provider's latest message does not reasonably require a reply (e.g., pure FYI/confirmation with no question or action needed), output body as exactly: NO_RESPONSE
   (all caps, no punctuation, no extra text). In that case, keep subject unchanged or minimal; the body MUST be exactly NO_RESPONSE.
+
+END TEST CASE RULE:
+- IF you detect a loop, where you respond and the agent keeps responding with the same message or dodging the question, causing the test to not continue, then output "NO_RESPONSE" for the body.
+- IF you detect that you don't have all the information to answer the question, then output "NO_RESPONSE" for the body.
+- Please don't try to force a reply, act like a human, and if you get all the valid information to a certain level, feel free to end the conversation,
+- Keep it simple! if we come to the expected result, then just end the conversation, don't overthink or anything. BE VERY SPECIFIC TO THE EXPECTED RESULT.
+
+START EVALUATION RULE:
+Evaluation is basally a judge to see how the test was performed. 
+We start the evaluation when the test comes to an end or the thread is good enough to start the evaluation.
+- In your thinking process, analyze whether the conversation has reached a natural conclusion or has sufficient information to evaluate the test case.
+- Consider starting evaluation if: the provider has fully addressed the user intent, the conversation is complete, there's a loop/deadlock, or no further meaningful exchange is expected.
+- If the startEvaluation flag is true, then start the evaluation of the test case.
+- If the startEvaluation flag is false, then do not start the evaluation of the test case.
 `;
 
   const lastMessages = (prevMessages || []).slice(-5);
@@ -99,6 +123,11 @@ ${internalContext}
 Customer objective:
 - Based on the internal context and the provider's latest message, choose or confirm the most appropriate option/time, or ask one precise question to move forward.
 
+Thinking process:
+- Analyze the conversation state and determine if we have enough information to evaluate the test case
+- Consider whether the user intent has been satisfied or if the conversation has reached a natural endpoint
+- Decide if startEvaluation should be true or false based on this analysis
+
 Constraints:
 - Keep the subject as-is unless a small clarification helps (stay <= 78 chars)
 - Body must be plain text, no signatures, 1-4 short paragraphs
@@ -107,6 +136,8 @@ Constraints:
       },
     ],
   });
+
+  console.log("[Thinking] DraftFirstMessage: ", object["01_thinking"]);
 
   return object;
 };
