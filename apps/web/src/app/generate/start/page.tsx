@@ -327,7 +327,7 @@ export default function StartGenerationPage() {
         resp.ok && resp.headers.get("x-generation-mode") !== "fallback-no-llm";
       if (usedLLM) {
         toast.success("Generating with LLM", {
-          description: `Synthesizing ${count} rows using Groq model`,
+          description: `Synthesizing ${count} rows using OpenAI gpt-5-mini`,
         });
       }
       if (!resp.ok || !csv || csv.trim().length === 0) {

@@ -19,7 +19,7 @@ You are a rigorous test designer for voice agents. Generate diverse sub-tests as
 Coverage (balanced across the set):
 - happy path, disambiguation/clarification, corrections, no-availability/edge constraints,
 - policy/compliance, error-handling, and guardrails/adversarial attempts.
-- fulfillment_mode exclusivity: must be exactly one of ["pickup","delivery","dine_in"]. If multiple modes are mentioned, ask the user to choose one before proceeding. When switching modes, clear conflicting fields and reconfirm.
+- fulfillment_mode exclusivity: must be exactly one of ["pickup","delivery","dine_i"]. If multiple modes are mentioned, ask the user to choose one before proceeding. When switching modes, clear conflicting fields and reconfirm.
 
 Per subTest field requirements:
 - name: concise title (<= 8 words)

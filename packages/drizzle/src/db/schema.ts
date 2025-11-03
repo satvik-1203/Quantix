@@ -49,6 +49,21 @@ export const subTextActivity = pgTable(
       | {
           threadId: string;
           messageData: LlmJudgeEmailTestSchemaType | {};
+          // idempotency & closure (email-only)
+          lastEventId?: string;
+          lastProcessedMessageId?: string;
+          closed?: boolean;
+          closedReason?: "EVALUATED" | "NO_RESPONSE" | "MANUAL" | "ERROR";
+          closedAt?: string;
+          // rolling context & experiment logging
+          summary?: string;
+          experiment?: {
+            responderTier?: "amateur" | "expert";
+            amateurConfidence?: number;
+            escalated?: boolean;
+            safetyFlags?: string[];
+            oooDetected?: boolean;
+          };
         }
       | {
           callId: string;

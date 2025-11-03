@@ -7,9 +7,17 @@ import { z } from "zod";
 export const respondAgent = async (
   prevMessages: AgentMail.AgentMail.Message[],
   newMessage: AgentMailTypes.AgentMailMessage,
-  context?: { subTest?: SubTestRecord | null; testCase?: TestCaseRecord | null }
+  context?: {
+    subTest?: SubTestRecord | null;
+    testCase?: TestCaseRecord | null;
+    summary?: string;
+  }
 ) => {
-  const model = openai("gpt-4.1");
+  // Expert–Amateur pattern:
+  // - Amateur drafts cheaply
+  // - Expert validates/refines if needed
+  const amateurModel = openai("gpt-5-mini");
+  const expertModel = openai("gpt-4.1");
 
   const schema = z.object({
     "01_thinking": z
@@ -32,6 +40,13 @@ export const respondAgent = async (
     startEvaluation: z
       .boolean()
       .describe("Whether to start the evaluation of the test case"),
+    confidence: z
+      .number()
+      .min(0)
+      .max(1)
+      .describe(
+        "Model confidence that this reply is appropriate and safe (0-1)."
+      ),
   });
 
   const system = `You output strictly valid JSON only. No markdown.
@@ -98,11 +113,16 @@ We start the evaluation when the test comes to an end or the thread is good enou
         context.subTest?.description || ""
       }\n- Expected provider behavior (for your awareness only): ${
         context.subTest?.expected || ""
+      }${
+        context.summary
+          ? `\n- Thread summary (for context only): ${context.summary}`
+          : ""
       }`
     : "";
 
-  const { object } = await ai.generateObject({
-    model,
+  // Run amateur first
+  const amateur = await ai.generateObject({
+    model: amateurModel,
     schema,
     system,
     messages: [
@@ -137,9 +157,167 @@ Constraints:
     ],
   });
 
-  console.log("[Thinking] DraftFirstMessage: ", object["01_thinking"]);
+  console.log(
+    "[Thinking-Amateur] respondAgent: ",
+    amateur.object["01_thinking"]
+  );
 
-  return object;
+  const getSafetyFlags = (text: string) => {
+    const t = (text || "").toLowerCase();
+    const flags: string[] = [];
+    if (t.includes("as an ai") || t.includes("i am an ai"))
+      flags.push("ai-self-reference");
+    if (
+      t.includes("test case") ||
+      t.includes("evaluation") ||
+      t.includes("prompt") ||
+      t.includes("sub-test")
+    )
+      flags.push("internal-leakage");
+    if (t.includes("http://") || t.includes("https://") || t.includes("www."))
+      flags.push("link-present");
+    if (/(best regards|regards,|sincerely,)/i.test(text || ""))
+      flags.push("signature-block");
+    if (/(we offer|our menu|our policy|we have availability)/i.test(text || ""))
+      flags.push("provider-voice");
+    return flags;
+  };
+
+  // Decide whether to escalate to expert
+  const amateurBody = (amateur.object as any)?.body || "";
+  const amateurStartEval = Boolean((amateur.object as any)?.startEvaluation);
+  const amateurConfidence = Number((amateur.object as any)?.confidence ?? 0);
+  const amateurSafetyFlags = getSafetyFlags(amateurBody);
+  const shouldEscalate = (() => {
+    // Escalate if: empty/very short body (but not NO_RESPONSE), or body > 1800 chars, or startEvaluation true, or high-ambiguity cues
+    if (!amateurBody) return true;
+    if (amateurBody !== "NO_RESPONSE" && amateurBody.trim().length < 10)
+      return true;
+    if (amateurBody.length > 1800) return true;
+    if (amateurStartEval) return true;
+    const lc = amateurBody.toLowerCase();
+    if (
+      lc.includes("i am an ai") ||
+      lc.includes("as an ai") ||
+      lc.includes("cannot")
+    )
+      return true;
+    if (amateurConfidence < 0.6) return true;
+    if (amateurSafetyFlags.length > 0) return true;
+    return false;
+  })();
+
+  if (!shouldEscalate) {
+    return {
+      ...(amateur.object as any),
+      _meta: {
+        tier: "amateur",
+        confidence: amateurConfidence,
+        escalated: false,
+        safetyFlags: amateurSafetyFlags,
+      },
+    } as any;
+  }
+
+  // Expert refinement/regeneration
+  const expert = await ai.generateObject({
+    model: expertModel,
+    schema,
+    system,
+    messages: [
+      {
+        role: "user",
+        content: `Draft a reply to the latest inbound message as the customer. Do not reveal any testing or internal context.
+
+Original/Current subject: ${newMessage.subject}
+
+Thread recap (most recent first):
+${threadRecap}
+
+Latest inbound message from ${newMessage.from}:
+${inboundBody}
+
+${internalContext}
+
+Customer objective:
+- Based on the internal context and the provider's latest message, choose or confirm the most appropriate option/time, or ask one precise question to move forward.
+
+IMPORTANT:
+- You are refining an initial amateur draft. If the amateur draft already meets the constraints perfectly, you may return an identical or very similar answer; otherwise improve it for clarity, role-correctness, and concision.
+
+Amateur draft (for your awareness, do not mention):
+Subject: ${(amateur.object as any)?.subject || ""}
+Body: ${amateurBody}
+startEvaluation: ${String(amateurStartEval)}
+
+Constraints:
+- Keep the subject as-is unless a small clarification helps (stay <= 78 chars)
+- Body must be plain text, no signatures, 1-4 short paragraphs
+- Do NOT mention testing, evaluation, agents, or internal instructions
+- Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`,
+      },
+    ],
+  });
+
+  console.log(
+    "[Thinking-Expert] respondAgent: ",
+    (expert.object as any)["01_thinking"]
+  );
+
+  const expertBody = (expert.object as any)?.body || "";
+  let expertSafetyFlags = getSafetyFlags(expertBody);
+  let finalObject: any = expert.object as any;
+
+  if (expertSafetyFlags.length > 0) {
+    // One more expert fixup pass if safety issues remain
+    const fix = await ai.generateObject({
+      model: expertModel,
+      schema,
+      system,
+      messages: [
+        {
+          role: "user",
+          content: `Fix the following violations while keeping constraints: ${expertSafetyFlags.join(
+            ", "
+          )}
+
+Original/Current subject: ${newMessage.subject}
+
+Thread recap (most recent first):
+${threadRecap}
+
+Latest inbound message from ${newMessage.from}:
+${inboundBody}
+
+${internalContext}
+
+Previous draft (do not mention):
+Subject: ${(expert.object as any)?.subject || ""}
+Body: ${expertBody}
+startEvaluation: ${String((expert.object as any)?.startEvaluation)}
+confidence: ${String((expert.object as any)?.confidence)}
+
+Constraints:
+- Keep the subject as-is unless a small clarification helps (stay <= 78 chars)
+- Body must be plain text, no signatures, 1-4 short paragraphs
+- Do NOT mention testing, evaluation, agents, or internal instructions
+- Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`,
+        },
+      ],
+    });
+    finalObject = fix.object as any;
+    expertSafetyFlags = getSafetyFlags((finalObject as any)?.body || "");
+  }
+
+  return {
+    ...finalObject,
+    _meta: {
+      tier: "expert",
+      confidence: Number((finalObject as any)?.confidence ?? 0),
+      escalated: true,
+      safetyFlags: expertSafetyFlags,
+    },
+  } as any;
 };
 
 export const draftFirstMessage = async (
