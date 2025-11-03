@@ -299,3 +299,26 @@ export const startTest = async (req: Request, res: Response) => {
     }
   })();
 };
+
+export const getThreadMessages = async (req: Request, res: Response) => {
+  try {
+    const { threadId } = req.params;
+    
+    if (!threadId) {
+      res.status(400).send({ error: "Thread ID is required" });
+      return;
+    }
+
+    const agentMailClient = getAgentMailClient();
+    const thread = await agentMailClient.threads.get(threadId);
+    
+    res.status(200).json({
+      threadId: thread.threadId,
+      messages: thread.messages || [],
+      labels: thread.labels || [],
+    });
+  } catch (error) {
+    console.error(`[getThreadMessages] Error fetching thread ${req.params.threadId}:`, error);
+    res.status(500).json({ error: "Failed to fetch thread messages" });
+  }
+};

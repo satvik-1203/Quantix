@@ -10,6 +10,8 @@ import {
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import SubTestItem from "./SubTestItem";
+import GenerateSubTestsButton from "./GenerateSubTestsButton";
+import CreateSubTestDialog from "./CreateSubTestDialog";
 
 type SubTest = {
   id: number;
@@ -20,8 +22,6 @@ type SubTest = {
   updatedAt: Date | null;
   expected: string | null;
 };
-import GenerateSubTestsButton from "./GenerateSubTestsButton";
-import CreateSubTestDialog from "./CreateSubTestDialog";
 
 export default async function SubTestsPage({
   params,
@@ -49,26 +49,24 @@ export default async function SubTestsPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <Link href="/generate/test-case/list">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Test Cases
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Sub-Tests for "{testCase.name}"
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Manage sub-tests for this test case
-              </p>
+    <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
             </div>
+            <h1 className="text-xl font-semibold">
+              {testCase.name || "Untitled Test Case"}
+            </h1>
           </div>
-          <div className="hidden sm:flex gap-2">
+          <div className="flex gap-2">
             <GenerateSubTestsButton testCaseId={testCaseId} />
             <CreateSubTestDialog testCaseId={testCaseId} />
           </div>
@@ -80,70 +78,71 @@ export default async function SubTestsPage({
             <CardTitle>Test Case Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Description
-                </h4>
-                <p className="text-sm">{testCase.description}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Kind of Test Cases
-                </h4>
-                <p className="text-sm">{testCase.kindOfTestCases}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Test Phone Number
-                </h4>
-                <p className="text-sm">{testCase.testPhoneNumber}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Email Address
-                </h4>
-                <p className="text-sm">{testCase.email}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-sm text-muted-foreground mb-1">
-                  Created
-                </h4>
-                <p className="text-sm">
-                  {testCase.createdAt?.toLocaleDateString()}
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {testCase.description && (
+                <div className="md:col-span-2">
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                    Description
+                  </h4>
+                  <p className="text-sm leading-relaxed">
+                    {testCase.description}
+                  </p>
+                </div>
+              )}
+              {testCase.kindOfTestCases && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                    Kind of Test Cases
+                  </h4>
+                  <p className="text-sm">{testCase.kindOfTestCases}</p>
+                </div>
+              )}
+              {testCase.testPhoneNumber && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                    Test Phone Number
+                  </h4>
+                  <p className="text-sm font-mono">{testCase.testPhoneNumber}</p>
+                </div>
+              )}
+              {testCase.email && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                    Email Address
+                  </h4>
+                  <p className="text-sm">{testCase.email}</p>
+                </div>
+              )}
+              {testCase.createdAt && (
+                <div>
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                    Created
+                  </h4>
+                  <p className="text-sm">
+                    {testCase.createdAt.toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Sub-Tests Section */}
-        <div className="flex items-end justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">
-              Sub-Tests ({subTests.length})
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Individual test scenarios for this test case
-            </p>
-          </div>
-          <div className="flex sm:hidden gap-2">
-            <GenerateSubTestsButton testCaseId={testCaseId} />
-            <CreateSubTestDialog testCaseId={testCaseId} />
-          </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold">
+            Sub-Tests <span className="text-sm text-muted-foreground font-normal">({subTests.length})</span>
+          </h2>
         </div>
 
         {/* List */}
-
         {subTests.length === 0 ? (
-          <Card>
-            <CardContent className="pt-10 pb-12">
-              <div className="text-center max-w-md mx-auto">
-                <h3 className="text-lg font-semibold mb-2">No sub-tests yet</h3>
-                <p className="text-muted-foreground mb-5 text-sm">
-                  Get started by generating AI sub-tests or add your first
-                  scenario manually.
-                </p>
+          <Card className="border-dashed">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center">
+                <CardTitle className="text-base mb-2">No sub-tests yet</CardTitle>
+                <CardDescription className="mb-4">
+                  Generate AI sub-tests or create one manually.
+                </CardDescription>
                 <div className="flex items-center justify-center gap-2">
                   <GenerateSubTestsButton testCaseId={testCaseId} />
                   <CreateSubTestDialog testCaseId={testCaseId} />
@@ -152,7 +151,7 @@ export default async function SubTestsPage({
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {subTests.map((subTest: SubTest) => (
               <SubTestItem key={subTest.id} subTest={subTest} />
             ))}

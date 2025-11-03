@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendAgentMail, startTest } from "./service";
+import { sendAgentMail, startTest, getThreadMessages } from "./service";
 
 const router: Router = Router();
 
@@ -9,5 +9,6 @@ router.get("/webhook", (req, res) => {
   res.status(200).send("OK");
 });
 router.post("/start-test", startTest);
+router.get("/thread/:threadId", getThreadMessages);
 
 export default router;

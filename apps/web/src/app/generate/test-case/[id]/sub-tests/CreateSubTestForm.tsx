@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createSubTestSchema, type CreateSubTestInput } from "./schema";
+import { useRouter } from "next/navigation";
 
 interface Props {
   testCaseId: number;
@@ -24,6 +25,7 @@ interface Props {
 
 export default function CreateSubTestForm({ testCaseId, onCreated }: Props) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const form = useForm<CreateSubTestInput>({
     resolver: zodResolver(createSubTestSchema),
@@ -49,6 +51,7 @@ export default function CreateSubTestForm({ testCaseId, onCreated }: Props) {
         form.reset({ testCaseId, name: "", description: "", expected: "" });
         toast.success("Sub-test created");
         onCreated?.();
+        router.refresh();
       } catch (err: any) {
         const message = err?.message || "Failed to create sub-test";
         toast.error(message);

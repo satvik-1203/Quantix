@@ -37,13 +37,20 @@ import {
   Save,
   X,
   Trash2,
-  ChevronRight,
-  Calendar,
   Phone,
   Mail,
   Tag,
+  MoreVertical,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -96,9 +103,11 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
     try {
       await updateTestCase(testCase.id, values);
       setIsEditing(false);
+      toast.success("Test case updated successfully!");
       window.location.reload(); // Simple refresh to show updated data
     } catch (error) {
       console.error("Failed to update test case:", error);
+      toast.error("Failed to update test case");
     } finally {
       setIsLoading(false);
     }
@@ -120,107 +129,120 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
     try {
       await deleteTestCase(testCase.id);
       setIsDeleteDialogOpen(false);
+      toast.success("Test case deleted successfully!");
       window.location.reload(); // Simple refresh to update the list
     } catch (error) {
       console.error("Failed to delete test case:", error);
+      toast.error("Failed to delete test case");
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <div>
-              <CardTitle className="text-xl">{testCase.name}</CardTitle>
-              <CardDescription>
-                Created: {testCase.createdAt?.toLocaleDateString()}
-                {testCase.updatedAt &&
-                  testCase.updatedAt !== testCase.createdAt && (
-                    <span className="ml-2">
-                      • Updated: {testCase.updatedAt.toLocaleDateString()}
-                    </span>
-                  )}
-              </CardDescription>
-            </div>
-          </div>
-          {!isEditing && (
-            <div className="flex flex-col items-end gap-2 w-[260px] max-w-full">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                  aria-label="Edit test case"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Dialog
-                  open={isDeleteDialogOpen}
-                  onOpenChange={setIsDeleteDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Test Case</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete "{testCase.name}"? This
-                        action cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
+    <Card className="group hover:bg-muted/50 transition-colors overflow-hidden">
+      {!isEditing ? (
+        <Link
+          href={`/generate/test-case/${testCase.id}/sub-tests`}
+          className="block cursor-pointer"
+        >
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="flex items-center gap-3 mb-1">
+                  <CardTitle className="text-base font-medium line-clamp-1 break-words">
+                    {testCase.name || "Untitled Test Case"}
+                  </CardTitle>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
-                        variant="outline"
-                        onClick={() => setIsDeleteDialogOpen(false)}
-                        disabled={isDeleting}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
                       >
-                        Cancel
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                        disabled={isDeleting}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsEditing(true);
+                        }}
                       >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDeleteDialogOpen(true);
+                        }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <CardDescription className="text-xs">
+                  {testCase.createdAt?.toLocaleDateString()}
+                  {testCase.updatedAt &&
+                    testCase.updatedAt !== testCase.createdAt && (
+                      <span className="ml-2">
+                        • Updated {testCase.updatedAt.toLocaleDateString()}
+                      </span>
+                    )}
+                </CardDescription>
               </div>
-              <Button
-                asChild
-                variant="secondary"
-                size="sm"
-                className="gap-1 w-full"
-              >
-                <Link
-                  href={`/generate/test-case/${testCase.id}/sub-tests`}
-                  aria-label={`View sub-tests for ${
-                    testCase.name ?? "test case"
-                  }`}
-                >
-                  View Sub-Tests
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </Button>
             </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isEditing ? (
+          </CardHeader>
+          <CardContent className="pt-0 overflow-hidden">
+            <div className="space-y-2">
+              {testCase.description && (
+                <p className="text-sm text-muted-foreground line-clamp-2 break-words">
+                  {testCase.description}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                {testCase.testPhoneNumber && (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Phone className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate max-w-[200px]">{testCase.testPhoneNumber}</span>
+                  </div>
+                )}
+                {testCase.email && (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Mail className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate max-w-[200px]">{testCase.email}</span>
+                  </div>
+                )}
+                {testCase.kindOfTestCases && (
+                  <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+                    <Tag className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-words line-clamp-2">{testCase.kindOfTestCases}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Link>
+      ) : (
+        <>
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <CardTitle className="text-base font-medium line-clamp-1 break-words">
+                  {testCase.name || "Untitled Test Case"}
+                </CardTitle>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 overflow-hidden">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -321,51 +343,37 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
               </div>
             </form>
           </Form>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Created</span>
-              <span className="text-foreground">
-                {testCase.createdAt?.toLocaleDateString()}
-              </span>
-            </div>
-            {testCase.updatedAt && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Updated</span>
-                <span className="text-foreground">
-                  {testCase.updatedAt.toLocaleDateString()}
-                </span>
-              </div>
-            )}
-            {testCase.testPhoneNumber && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span className="text-foreground truncate">
-                  {testCase.testPhoneNumber}
-                </span>
-              </div>
-            )}
-            {testCase.email && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span className="text-foreground truncate">
-                  {testCase.email}
-                </span>
-              </div>
-            )}
-            {testCase.kindOfTestCases && (
-              <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
-                <Tag className="h-4 w-4" />
-                <span className="text-foreground line-clamp-1">
-                  {testCase.kindOfTestCases}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
+          </CardContent>
+        </>
+      )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Test Case</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{testCase.name}"? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

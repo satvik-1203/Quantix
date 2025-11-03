@@ -1,7 +1,7 @@
-"use client";
-
-import Link from "next/link";
+import { getAllTestCases } from "./generate/test-case/action";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -9,94 +9,135 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Braces, Wand2, Table, HelpCircle, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import TestCaseItem from "./generate/test-case/list/TestCaseItem";
+import CreateTestCaseDialog from "@/components/CreateTestCaseDialog";
+import { Search } from "lucide-react";
 
-export default function Home() {
+type TestCase = {
+  id: number;
+  name: string | null;
+  description: string | null;
+  kindOfTestCases: string | null;
+  testPhoneNumber: string | null;
+  email: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
+
+type SearchParams = {
+  q?: string;
+  sort?: "recent" | "updated" | "name";
+};
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const params = searchParams ?? {};
+  const query = (params.q ?? "").trim();
+  const sort = (params.sort as SearchParams["sort"]) ?? "recent";
+
+  const all = await getAllTestCases();
+
+  const filtered = all.filter((t: TestCase) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (
+      (t.name ?? "").toLowerCase().includes(q) ||
+      (t.description ?? "").toLowerCase().includes(q) ||
+      (t.kindOfTestCases ?? "").toLowerCase().includes(q) ||
+      (t.email ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const toDate = (d: unknown): number => {
+    if (!d) return 0;
+    const date = d instanceof Date ? d : new Date(String(d));
+    return date.getTime() || 0;
+  };
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "name") {
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    }
+    if (sort === "updated") {
+      return toDate(b.updatedAt) - toDate(a.updatedAt);
+    }
+    return toDate(b.createdAt) - toDate(a.createdAt);
+  });
+
+  const count = sorted.length;
+
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="max-w-3xl mx-auto text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-          Generate Synthetic Data
-        </h1>
-        <p className="text-lg text-muted-foreground mt-3">
-          Choose the path that fits your research workflow.
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Test Cases</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {count} {count === 1 ? "test case" : "test cases"}
+            </p>
+          </div>
+          <CreateTestCaseDialog />
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
-        <Card className="data-grid">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Braces className="w-5 h-5" />
-              <span className="text-xs uppercase tracking-wide">
-                For precise needs
-              </span>
+        {/* Search and Filter */}
+        <div className="mb-6">
+          <form className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                name="q"
+                defaultValue={query}
+                placeholder="Search by name, description, or email..."
+                className="w-full pl-9"
+              />
             </div>
-            <CardTitle>I know the exact schema</CardTitle>
-            <CardDescription>
-              Define tables, columns, data types, and constraints. Generate
-              datasets that match your specification exactly.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="text-sm text-muted-foreground space-y-2">
-              <li className="flex items-center gap-2">
-                <Table className="w-4 h-4" /> Relational schema support
-              </li>
-              <li className="flex items-center gap-2">
-                <Braces className="w-4 h-4" /> JSON/Avro schema import
-              </li>
-              <li className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" /> Constraints and distributions
-              </li>
-            </ul>
-            <Button asChild className="w-full">
-              <Link
-                href="/generate/schema"
-                className="inline-flex items-center"
-              >
-                Start with schema <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <select
+              name="sort"
+              defaultValue={sort}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="recent">Newest First</option>
+              <option value="updated">Recently Updated</option>
+              <option value="name">Name (A–Z)</option>
+            </select>
+            <Button type="submit" variant="default" size="sm">
+              Apply
             </Button>
-          </CardContent>
-        </Card>
+            {query && (
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/">Clear</Link>
+              </Button>
+            )}
+          </form>
+        </div>
 
-        <Card className="data-grid">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Wand2 className="w-5 h-5" />
-              <span className="text-xs uppercase tracking-wide">
-                For exploration
-              </span>
-            </div>
-            <CardTitle>I need guidance</CardTitle>
-            <CardDescription>
-              Answer a few questions and we will suggest sensible schema and
-              data shapes for your task.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="text-sm text-muted-foreground space-y-2">
-              <li className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" /> Guided questionnaire
-              </li>
-              <li className="flex items-center gap-2">
-                <Wand2 className="w-4 h-4" /> Suggested fields and distributions
-              </li>
-              <li className="flex items-center gap-2">
-                <Table className="w-4 h-4" /> Preview sample rows
-              </li>
-            </ul>
-            <Button asChild variant="outline" className="w-full">
-              <Link
-                href="/generate/guided"
-                className="inline-flex items-center"
-              >
-                Start guided setup <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Test Cases List */}
+        {count === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="pt-12 pb-12">
+              <div className="text-center max-w-md mx-auto">
+                <CardTitle className="text-lg mb-2">No test cases yet</CardTitle>
+                <CardDescription className="mb-6">
+                  Create your first test case to get started.
+                </CardDescription>
+                <CreateTestCaseDialog>
+                  <Button>Create Test Case</Button>
+                </CreateTestCaseDialog>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map((testCase: TestCase) => (
+              <TestCaseItem key={testCase.id} testCase={testCase} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

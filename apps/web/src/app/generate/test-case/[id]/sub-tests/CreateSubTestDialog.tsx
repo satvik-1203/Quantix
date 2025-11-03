@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import CreateSubTestForm from "./CreateSubTestForm";
+import { Plus } from "lucide-react";
 
 interface Props {
   testCaseId: number;
@@ -21,6 +22,7 @@ export default function CreateSubTestDialog({ testCaseId }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
+          <Plus className="h-4 w-4 mr-2" />
           Add Sub-Test
         </Button>
       </DialogTrigger>

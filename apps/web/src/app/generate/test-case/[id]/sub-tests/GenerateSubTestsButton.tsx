@@ -1,8 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Props extends React.ComponentProps<typeof Button> {
   testCaseId: number;
@@ -13,6 +14,7 @@ const GenerateSubTestsButton: React.FC<Props> = ({
   ...buttonProps
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleGenerateSubTests = async () => {
     setIsLoading(true);
@@ -30,6 +32,7 @@ const GenerateSubTestsButton: React.FC<Props> = ({
 
       if (resp.ok) {
         toast.success("Sub-tests generated successfully!");
+        router.refresh();
       } else {
         throw new Error("Failed to generate sub-tests");
       }
@@ -47,7 +50,11 @@ const GenerateSubTestsButton: React.FC<Props> = ({
       size="sm"
       {...buttonProps}
     >
-      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : (
+        <Wand2 className="h-4 w-4 mr-2" />
+      )}
       Generate Sub-Tests
     </Button>
   );
