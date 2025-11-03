@@ -4,6 +4,9 @@ import "../index.css";
 import Providers from "@/components/providers";
 import Header from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarReopenButton } from "@/components/sidebar-reopen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +34,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Header />
-            {children}
-          </div>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <div className="grid grid-rows-[auto_1fr] h-svh">
+                <Header />
+                {children}
+              </div>
+              <SidebarReopenButton />
+            </SidebarInset>
+          </SidebarProvider>
           <Toaster richColors />
         </Providers>
       </body>
