@@ -23,6 +23,7 @@
     "eval:self-reply-guard": "tsx src/evals/eval-self-reply-guard.ts",
     "eval:retry-cap": "tsx src/evals/eval-retry-cap.ts",
     "eval:missing-context": "tsx src/evals/eval-missing-context.ts",
+    "eval:prompt-injection": "tsx src/evals/eval-prompt-injection.ts",
     "pinecone:ingest": "tsx src/scripts/ingest-pinecone-email-threads.ts",
     "pinecone:test": "tsx src/scripts/test-pinecone-retrieval.ts",
     "demo:test-gen": "tsx src/scripts/demo-test-generation.ts",

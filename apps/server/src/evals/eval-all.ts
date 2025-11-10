@@ -102,6 +102,7 @@ async function main() {
 	tasks.push(runTask("self-reply-guard", 1, [p("evals/eval-self-reply-guard.ts")]));
 	tasks.push(runTask("retry-cap", 1, [p("evals/eval-retry-cap.ts")]));
 	tasks.push(runTask("missing-context", 1, [p("evals/eval-missing-context.ts")]));
+	tasks.push(runTask("prompt-injection", 1, [p("evals/eval-prompt-injection.ts")]));
 
 	// Run all concurrently
 	const results = await Promise.all(tasks);
