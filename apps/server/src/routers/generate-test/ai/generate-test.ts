@@ -2,6 +2,14 @@ import * as ai from "ai";
 import { openai } from "@ai-sdk/openai";
 import type { TestCaseRecord } from "@workspace/drizzle/schema";
 import { generateTestCasesSchema } from "./schema";
+import {
+  getSimilarThreadsFile,
+  formatRetrievedThreadsFile,
+} from "@/lib/file-retrieval";
+import {
+  getSimilarThreadsPinecone,
+  formatRetrievedThreadsPinecone,
+} from "@/lib/pinecone-retrieval";
 
 const model = openai("gpt-5-mini");
 
@@ -35,6 +43,23 @@ Return strictly valid JSON matching the schema above and nothing else.`;
 
     console.log("Calling AI model to generate test cases...");
 
+    // Pinecone if configured; else local dataset retrieval (auto if data/ exists)
+    let retrievedExamplesText = "";
+    try {
+      const query = [testCase.description, testCase.kindOfTestCases]
+        .filter(Boolean)
+        .join("\n");
+      if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
+        const retrieved = await getSimilarThreadsPinecone(query, 4);
+        retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+      } else {
+        const retrieved = await getSimilarThreadsFile(query, 4);
+        retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+      }
+    } catch (err) {
+      console.warn("Failed to retrieve similar email threads:", err);
+    }
+
     const result = await ai.generateObject({
       model,
       schema: generateTestCasesSchema,
@@ -48,6 +73,14 @@ Target voice agent description:
 ${testCase.description}
 
 Emphasis (if provided): ${testCase.kindOfTestCases || "balanced coverage"}
+
+${retrievedExamplesText}
+
+${
+  retrievedExamplesText
+    ? `The email thread examples above show real conversation patterns, topics, and communication styles. Use these as inspiration for realistic scenarios that might occur in similar contexts. Consider the types of requests, questions, and issues present in these threads when designing your test cases.`
+    : ""
+}
 
 Locale/style: US English; realistic dates/times; no PII.
 Ensure each subTest adheres to the schema (name, prompt, expected) with non-duplicative coverage across types.`,

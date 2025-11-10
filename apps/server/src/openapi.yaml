@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: Quantix Server API
+  version: 1.0.0
+  description: |
+    API for Quantix backend.
+    Includes endpoints for test generation, agentmail, call-subtest, and email analytics (file-based).
+servers:
+  - url: http://localhost:3000
+paths:
+  /:
+    get:
+      summary: Healthcheck
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/generate-test:
+    post:
+      summary: Generate sub-tests for a test case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Test case ID
+      responses:
+        "200":
+          description: Generated tests
+  /api/call-subtest:
+    post:
+      summary: Trigger a phone call for a sub-test
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subTestId:
+                  type: integer
+      responses:
+        "200":
+          description: Call created
+    get:
+      summary: List calls for a sub-test
+      parameters:
+        - in: path
+          name: subTestId
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Calls list
+  /api/agentmail/webhook:
+    get:
+      summary: Webhook healthcheck
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: AgentMail webhook
+      description: Receives message events and triggers draft/evaluation.
+      responses:
+        "200":
+          description: Accepted
+  /api/agentmail/start-test:
+    post:
+      summary: Start an email test run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                testRunId:
+                  type: integer
+      responses:
+        "202":
+          description: Started
+  /api/agentmail/thread/{threadId}:
+    get:
+      summary: Get thread messages
+      parameters:
+        - in: path
+          name: threadId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Thread
+  /api/email-analytics/metrics:
+    get:
+      summary: List email thread metrics (file-based dataset)
+      responses:
+        "200":
+          description: JSON metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        threadId: { type: string }
+                        subjectFirst: { type: string }
+                        numMessages: { type: integer }
+                        participants: { type: integer }
+                        firstSenderDomain: { type: string, nullable: true }
+                        firstTimestamp: { type: string, nullable: true }
+                        lastTimestamp: { type: string, nullable: true }
+                        firstResponseMinutes: { type: integer, nullable: true }
+                        avgResponseMinutes: { type: integer, nullable: true }
+                        subjectLength: { type: integer, nullable: true }
+                        totalBodyChars: { type: integer }
+                        summaryLength: { type: integer, nullable: true }
+                        startHour: { type: integer, nullable: true }
+                        weekday: { type: integer, nullable: true }
+                        lastSender: { type: string, nullable: true }
+  /api/email-analytics/metrics.csv:
+    get:
+      summary: Download email thread metrics as CSV
+      responses:
+        "200":
+          description: CSV content
+          content:
+            text/csv:
+              schema:
+                type: string

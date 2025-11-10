@@ -3,6 +3,14 @@ import { openai } from "@ai-sdk/openai";
 import { AgentMail, AgentMailTypes } from "@workspace/common";
 import type { SubTestRecord, TestCaseRecord } from "@workspace/drizzle";
 import { z } from "zod";
+import {
+  getSimilarThreadsFile,
+  formatRetrievedThreadsFile,
+} from "@/lib/file-retrieval";
+import {
+  getSimilarThreadsPinecone,
+  formatRetrievedThreadsPinecone,
+} from "@/lib/pinecone-retrieval";
 
 export const respondAgent = async (
   prevMessages: AgentMail.AgentMail.Message[],
@@ -101,6 +109,25 @@ We start the evaluation when the test comes to an end or the thread is good enou
       }`
     : "";
 
+  // Retrieval from Pinecone if configured, else local dataset (auto if data/ exists)
+  let retrievedExamplesText = "";
+  try {
+    const queryText = [
+      context?.testCase?.description || "",
+      context?.subTest?.description || "",
+      inboundBody || "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
+      const retrieved = await getSimilarThreadsPinecone(queryText, 2);
+      retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+    } else {
+      const retrieved = await getSimilarThreadsFile(queryText, 2);
+      retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+    }
+  } catch {}
+
   const { object } = await ai.generateObject({
     model,
     schema,
@@ -119,6 +146,8 @@ Latest inbound message from ${newMessage.from}:
 ${inboundBody}
 
 ${internalContext}
+
+${retrievedExamplesText}
 
 Customer objective:
 - Based on the internal context and the provider's latest message, choose or confirm the most appropriate option/time, or ask one precise question to move forward.
@@ -182,6 +211,21 @@ QUALITY:
   const testCaseDescription = testCaseData?.description || "";
   const emphasis = testCaseData?.kindOfTestCases || "balanced coverage";
 
+  // Retrieval from Pinecone if configured, else local dataset (auto if data/ exists)
+  let retrievedExamplesText = "";
+  try {
+    const queryText = [testCaseDescription, subTestDescription, emphasis]
+      .filter(Boolean)
+      .join("\n");
+    if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
+      const retrieved = await getSimilarThreadsPinecone(queryText, 2);
+      retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+    } else {
+      const retrieved = await getSimilarThreadsFile(queryText, 2);
+      retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+    }
+  } catch {}
+
   const { object } = await ai.generateObject({
     model,
     schema,
@@ -197,6 +241,8 @@ INTERNAL CONTEXT (do not reveal):
 - Emphasis: ${emphasis}
 - Sub-test description: ${subTestDescription}
 - Expected behavior: ${subTestExpected}
+
+${retrievedExamplesText}
 
 Output requirements (visible to recipient):
 - Subject <= 78 characters

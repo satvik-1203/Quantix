@@ -23,10 +23,14 @@
     "eval:self-reply-guard": "tsx src/evals/eval-self-reply-guard.ts",
     "eval:retry-cap": "tsx src/evals/eval-retry-cap.ts",
     "eval:missing-context": "tsx src/evals/eval-missing-context.ts",
+    "pinecone:ingest": "tsx src/scripts/ingest-pinecone-email-threads.ts",
+    "pinecone:test": "tsx src/scripts/test-pinecone-retrieval.ts",
+    "demo:test-gen": "tsx src/scripts/demo-test-generation.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "analytics:export": "tsx src/scripts/export-email-analytics.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.38",
