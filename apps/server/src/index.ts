@@ -6,6 +6,7 @@ import express from "express";
 import generateTestRouter from "./routers/generate-test/contoller";
 import callSubtestRouter from "./routers/call-subtest/controller";
 import agentmailRouter from "./routers/agentmail/controller";
+import emailAnalyticsRouter from "./routers/email-analytics/controller";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get("/", (_req, res) => {
 app.use("/api/generate-test", generateTestRouter);
 app.use("/api/call-subtest", callSubtestRouter);
 app.use("/api/agentmail", agentmailRouter);
+app.use("/api/email-analytics", emailAnalyticsRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

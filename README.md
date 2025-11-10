@@ -21,6 +21,7 @@ First, install the dependencies:
 ```bash
 pnpm install
 ```
+
 ## Database Setup
 
 This project uses PostgreSQL with Drizzle ORM.
@@ -29,10 +30,10 @@ This project uses PostgreSQL with Drizzle ORM.
 2. Update your `apps/server/.env` file with your PostgreSQL connection details.
 
 3. Apply the schema to your database:
+
 ```bash
 pnpm db:push
 ```
-
 
 Then, run the development server:
 
@@ -42,10 +43,6 @@ pnpm dev
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 The API is running at [http://localhost:3000](http://localhost:3000).
-
-
-
-
 
 ## Project Structure
 
@@ -58,10 +55,37 @@ capstone-class/
 
 ## Available Scripts
 
+### Development
+
 - `pnpm dev`: Start all applications in development mode
 - `pnpm build`: Build all applications
 - `pnpm dev:web`: Start only the web application
 - `pnpm dev:server`: Start only the server
 - `pnpm check-types`: Check TypeScript types across all apps
+
+### Database
+
 - `pnpm db:push`: Push schema changes to database
 - `pnpm db:studio`: Open database studio UI
+
+### Email Threads & Pinecone
+
+- `pnpm --filter server pinecone:ingest`: Ingest email threads into Pinecone vector database
+- `pnpm --filter server pinecone:test`: Test Pinecone retrieval with example queries
+- `pnpm --filter server demo:test-gen`: Demo test generation with email context
+
+### Evaluation Scripts
+
+- `pnpm --filter server eval:generate-tests`: Evaluate test generation
+- `pnpm --filter server eval:agentmail-loop`: Evaluate agent email loop
+- `pnpm --filter server eval:all`: Run all evaluations
+
+## Documentation
+
+### For Users
+
+- **[Test Case Creation Guide](./TEST_CASE_CREATION_GUIDE.md)** - How to fill out the test case form, with examples for different use cases
+
+### For Developers
+
+- **[Email Threads Integration](./EMAIL_THREADS_INTEGRATION.md)** - Technical details on Pinecone setup, ingestion, and retrieval
