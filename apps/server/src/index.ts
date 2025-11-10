@@ -3,7 +3,7 @@ dotenv.config({ path: ".env" });
 
 import cors from "cors";
 import express from "express";
-import generateTestRouter from "./routers/generate-test/contoller";
+import generateTestRouter from "./routers/generate-test/controller";
 import callSubtestRouter from "./routers/call-subtest/controller";
 import agentmailRouter from "./routers/agentmail/controller";
 import emailAnalyticsRouter from "./routers/email-analytics/controller";
@@ -12,8 +12,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "",
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: process.env.CORS_ORIGIN || "http://localhost:3001",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 

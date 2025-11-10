@@ -18,6 +18,12 @@ const GenerateSubTestsButton: React.FC<Props> = ({
 
   const handleGenerateSubTests = async () => {
     setIsLoading(true);
+
+    // Show initial progress message
+    const progressToast = toast.loading(
+      "Generating test cases with AI... This may take 10-30 seconds."
+    );
+
     try {
       const resp = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/generate-test`,
@@ -26,18 +32,30 @@ const GenerateSubTestsButton: React.FC<Props> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: testCaseId }),
+          body: JSON.stringify({ testCaseId }),
         }
       );
 
       if (resp.ok) {
-        toast.success("Sub-tests generated successfully!");
+        toast.success("Sub-tests generated successfully!", {
+          id: progressToast,
+        });
         router.refresh();
       } else {
-        throw new Error("Failed to generate sub-tests");
+        const errorData = await resp
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          errorData.error || errorData.message || "Failed to generate sub-tests"
+        );
       }
     } catch (error) {
-      toast.error("Failed to generate sub-tests. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate sub-tests. Please try again.";
+      toast.error(errorMessage, { id: progressToast });
+      console.error("Generate sub-tests error:", error);
     } finally {
       setIsLoading(false);
     }
