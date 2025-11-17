@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createTestCase } from "./action";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -46,13 +46,20 @@ const formSchema = z.object({
 
 export default function TestCaseGeneratorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialName = searchParams.get("name") || "";
+  const initialDescription = searchParams.get("description") || "";
+  const initialKind =
+    searchParams.get("kindOfTestCases") ||
+    "Email assistant behavior and conversation handling";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      kindOfTestCases: "",
+      name: initialName,
+      description: initialDescription,
+      kindOfTestCases: initialKind,
       testPhoneNumber: "",
       email: "",
     },

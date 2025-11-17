@@ -37,7 +37,27 @@ export type ThreadMetrics = {
 };
 
 function datasetDir(): string {
-  return path.resolve(process.cwd(), "data");
+  // Prefer repo-root /data when running from apps/server
+  const cwdData = path.resolve(process.cwd(), "data");
+  if (
+    fs.existsSync(cwdData) &&
+    fs.existsSync(path.join(cwdData, "email_thread_details.json"))
+  ) {
+    return cwdData;
+  }
+
+  // Try ../../data (repo root when cwd is apps/server)
+  const repoRoot = path.resolve(process.cwd(), "..", "..");
+  const repoData = path.join(repoRoot, "data");
+  if (
+    fs.existsSync(repoData) &&
+    fs.existsSync(path.join(repoData, "email_thread_details.json"))
+  ) {
+    return repoData;
+  }
+
+  // Fallback to cwd/data (may be empty, but avoids crashing)
+  return cwdData;
 }
 
 async function readJsonArray(filePath: string): Promise<any[] | null> {
@@ -118,6 +138,44 @@ export async function loadThreadsFromData(): Promise<EmailThread[]> {
     });
     threads.push(t);
   }
+  // Merge in any custom uploaded threads, if present
+  const customPath = path.join(dir, "custom_email_threads.json");
+  if (fs.existsSync(customPath)) {
+    try {
+      const raw = await fsp.readFile(customPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        for (const rawThread of parsed) {
+          if (
+            !rawThread ||
+            !rawThread.threadId ||
+            !Array.isArray(rawThread.messages)
+          ) {
+            continue;
+          }
+          threads.push({
+            threadId: String(rawThread.threadId),
+            messages: (rawThread.messages || []).map((m: any) => ({
+              messageId: m.messageId,
+              threadId: String(rawThread.threadId),
+              from: m.from,
+              to: Array.isArray(m.to) ? m.to.map((v: any) => String(v)) : [],
+              subject: m.subject,
+              body: m.body,
+              timestamp: m.timestamp,
+            })),
+            summary: rawThread.summary ?? null,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn(
+        "[email-metrics] Failed to load custom_email_threads.json:",
+        (err as Error)?.message || err
+      );
+    }
+  }
+
   return threads;
 }
 

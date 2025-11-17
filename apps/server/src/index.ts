@@ -7,6 +7,7 @@ import generateTestRouter from "./routers/generate-test/controller";
 import callSubtestRouter from "./routers/call-subtest/controller";
 import agentmailRouter from "./routers/agentmail/controller";
 import emailAnalyticsRouter from "./routers/email-analytics/controller";
+import emailDatasetRouter from "./routers/email-dataset/controller";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/generate-test", generateTestRouter);
 app.use("/api/call-subtest", callSubtestRouter);
 app.use("/api/agentmail", agentmailRouter);
 app.use("/api/email-analytics", emailAnalyticsRouter);
+app.use("/api/email-dataset", emailDatasetRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

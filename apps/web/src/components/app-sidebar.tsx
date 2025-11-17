@@ -37,6 +37,11 @@ const menuItems = [
     url: "/generate/start",
     icon: FileSpreadsheet,
   },
+  {
+    title: "Email DataLake",
+    url: "/dataset/threads",
+    icon: FileText,
+  },
 ];
 
 export function AppSidebar() {
