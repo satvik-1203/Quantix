@@ -326,7 +326,15 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
               ) : (
                 <div className="space-y-2">
                   {calls.map((call) => (
-                    <CallItem key={call.id} call={call} />
+                    <CallItem
+                      key={call.id}
+                      call={call}
+                      subTestId={subTest.id}
+                      onCallDeleted={() => {
+                        // Refresh the calls list after deletion
+                        fetchCalls();
+                      }}
+                    />
                   ))}
                 </div>
               )}
@@ -415,7 +423,10 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
           }
         }}
       >
-        <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col [&>button]:z-50">
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl flex flex-col [&>button]:z-50"
+        >
           <div className="flex-1 overflow-y-auto">
             <div className="px-6 py-4">
               <SheetHeader className="mb-6">
@@ -423,192 +434,204 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
               </SheetHeader>
               {selectedEmail && (
                 <div className="space-y-6">
-                {/* Status and Info Section */}
-              <div className="flex items-center justify-between pb-3 border-b">
-                <div className="flex items-center gap-3">
-                  <Badge
-                    className={getEmailStatusBadgeClass(selectedEmail.status)}
-                  >
-                    {selectedEmail.status === "SUCCESS" && (
-                      <CheckCircle2 className="h-3 w-3 mr-1.5" />
-                    )}
-                    {selectedEmail.status === "FAILED" && (
-                      <XCircle className="h-3 w-3 mr-1.5" />
-                    )}
-                    {selectedEmail.status !== "SUCCESS" &&
-                      selectedEmail.status !== "FAILED" && (
-                        <AlertCircle className="h-3 w-3 mr-1.5" />
-                      )}
-                    {selectedEmail.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>
-                    {selectedEmail.createdAt
-                      ? new Date(selectedEmail.createdAt).toLocaleString()
-                      : ""}
-                  </span>
-                </div>
-              </div>
-
-              {/* Thread ID */}
-              {selectedEmail.metadata?.threadId && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5" />
-                    Thread ID
-                  </label>
-                  <p className="font-mono text-xs break-all bg-muted/50 p-2.5 rounded-md">
-                    {selectedEmail.metadata.threadId}
-                  </p>
-                </div>
-              )}
-
-              {/* Email Thread */}
-              {selectedEmail.metadata?.threadId && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email Thread
-                    </h3>
-                    {loadingThread && (
-                      <span className="text-xs text-muted-foreground">
-                        Loading...
-                      </span>
-                    )}
-                  </div>
-                  {loadingThread ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-24 w-full" />
-                      <Skeleton className="h-24 w-full" />
+                  {/* Status and Info Section */}
+                  <div className="flex items-center justify-between pb-3 border-b">
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        className={getEmailStatusBadgeClass(
+                          selectedEmail.status
+                        )}
+                      >
+                        {selectedEmail.status === "SUCCESS" && (
+                          <CheckCircle2 className="h-3 w-3 mr-1.5" />
+                        )}
+                        {selectedEmail.status === "FAILED" && (
+                          <XCircle className="h-3 w-3 mr-1.5" />
+                        )}
+                        {selectedEmail.status !== "SUCCESS" &&
+                          selectedEmail.status !== "FAILED" && (
+                            <AlertCircle className="h-3 w-3 mr-1.5" />
+                          )}
+                        {selectedEmail.status}
+                      </Badge>
                     </div>
-                  ) : threadMessages.length > 0 ? (
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                      {threadMessages.map((message: any, index: number) => {
-                        const isAgentMail =
-                          message.from?.includes("@agentmail.to");
-                        return (
-                          <div
-                            key={message.messageId || index}
-                            className={`border rounded-lg p-4 ${
-                              isAgentMail
-                                ? "bg-primary/5 border-primary/20"
-                                : "bg-muted/30"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <User className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs font-medium">
-                                  {isAgentMail ? "Agent" : "Customer"}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {message.from}
-                                </span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {selectedEmail.createdAt
+                          ? new Date(selectedEmail.createdAt).toLocaleString()
+                          : ""}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Thread ID */}
+                  {selectedEmail.metadata?.threadId && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5" />
+                        Thread ID
+                      </label>
+                      <p className="font-mono text-xs break-all bg-muted/50 p-2.5 rounded-md">
+                        {selectedEmail.metadata.threadId}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Email Thread */}
+                  {selectedEmail.metadata?.threadId && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Email Thread
+                        </h3>
+                        {loadingThread && (
+                          <span className="text-xs text-muted-foreground">
+                            Loading...
+                          </span>
+                        )}
+                      </div>
+                      {loadingThread ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-24 w-full" />
+                          <Skeleton className="h-24 w-full" />
+                        </div>
+                      ) : threadMessages.length > 0 ? (
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                          {threadMessages.map((message: any, index: number) => {
+                            const isAgentMail =
+                              message.from?.includes("@agentmail.to");
+                            return (
+                              <div
+                                key={message.messageId || index}
+                                className={`border rounded-lg p-4 ${
+                                  isAgentMail
+                                    ? "bg-primary/5 border-primary/20"
+                                    : "bg-muted/30"
+                                }`}
+                              >
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-xs font-medium">
+                                      {isAgentMail ? "Agent" : "Customer"}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {message.from}
+                                    </span>
+                                  </div>
+                                  {message.timestamp && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(
+                                        message.timestamp
+                                      ).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                {message.subject && (
+                                  <div className="mb-3">
+                                    <span className="text-xs font-medium">
+                                      Subject: {message.subject}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                                  {message.text ||
+                                    message.preview ||
+                                    "No content"}
+                                </div>
                               </div>
-                              {message.timestamp && (
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(message.timestamp).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            {message.subject && (
-                              <div className="mb-3">
-                                <span className="text-xs font-medium">
-                                  Subject: {message.subject}
-                                </span>
-                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-6">
+                          No messages found in thread
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Evaluation Results */}
+                  {selectedEmail.metadata?.messageData && (
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-semibold mb-1">
+                        Evaluation Results
+                      </h3>
+
+                      {typeof selectedEmail.metadata.messageData.succeeded ===
+                        "boolean" && (
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <span className="text-sm font-medium">Succeeded</span>
+                          <div className="flex items-center gap-2">
+                            {selectedEmail.metadata.messageData.succeeded ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-500" />
                             )}
-                            <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                              {message.text || message.preview || "No content"}
+                            <span className="text-sm font-medium">
+                              {selectedEmail.metadata.messageData.succeeded
+                                ? "Yes"
+                                : "No"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedEmail.metadata.messageData.summary && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-muted-foreground">
+                            Summary
+                          </label>
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-sm leading-relaxed">
+                              {selectedEmail.metadata.messageData.summary}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedEmail.metadata.messageData
+                        .divergenceExplanation &&
+                        selectedEmail.metadata.messageData
+                          .divergenceExplanation !== "None" && (
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Divergence
+                            </label>
+                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                              <p className="text-sm leading-relaxed">
+                                {
+                                  selectedEmail.metadata.messageData
+                                    .divergenceExplanation
+                                }
+                              </p>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-6">
-                      No messages found in thread
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Evaluation Results */}
-              {selectedEmail.metadata?.messageData && (
-                <div className="space-y-4 pt-4 border-t">
-                  <h3 className="text-sm font-semibold mb-1">Evaluation Results</h3>
-                  
-                  {typeof selectedEmail.metadata.messageData.succeeded ===
-                    "boolean" && (
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm font-medium">Succeeded</span>
-                      <div className="flex items-center gap-2">
-                        {selectedEmail.metadata.messageData.succeeded ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-500" />
                         )}
-                        <span className="text-sm font-medium">
-                          {selectedEmail.metadata.messageData.succeeded
-                            ? "Yes"
-                            : "No"}
-                        </span>
-                      </div>
+
+                      {selectedEmail.metadata.messageData.suggestedFix &&
+                        selectedEmail.metadata.messageData.suggestedFix !==
+                          "None" && (
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Suggested Fix
+                            </label>
+                            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                              <p className="text-sm leading-relaxed">
+                                {
+                                  selectedEmail.metadata.messageData
+                                    .suggestedFix
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        )}
                     </div>
                   )}
-
-                  {selectedEmail.metadata.messageData.summary && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">
-                        Summary
-                      </label>
-                      <div className="p-3 bg-muted/30 rounded-lg">
-                        <p className="text-sm leading-relaxed">
-                          {selectedEmail.metadata.messageData.summary}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedEmail.metadata.messageData.divergenceExplanation &&
-                    selectedEmail.metadata.messageData
-                      .divergenceExplanation !== "None" && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          Divergence
-                        </label>
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                          <p className="text-sm leading-relaxed">
-                            {
-                              selectedEmail.metadata.messageData
-                                .divergenceExplanation
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                  {selectedEmail.metadata.messageData.suggestedFix &&
-                    selectedEmail.metadata.messageData.suggestedFix !==
-                      "None" && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">
-                          Suggested Fix
-                        </label>
-                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                          <p className="text-sm leading-relaxed">
-                            {selectedEmail.metadata.messageData.suggestedFix}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                 </div>
               )}
-              </div>
-            )}
             </div>
           </div>
         </SheetContent>
