@@ -24,15 +24,28 @@ router.post("/", async (req, res) => {
       )
     );
 
-    const result = await Promise.race([
+    const result = (await Promise.race([
       generateTestService(testCaseId),
       timeoutPromise,
-    ]);
+    ])) as { testCase: any; traceId: string | null } | any;
+
+    const traceId =
+      result && typeof result === "object" && "traceId" in result
+        ? (result as { traceId: string | null }).traceId
+        : null;
 
     console.log(
-      `[generate-test] Successfully completed generation for test case ${testCaseId}`
+      `[generate-test] Successfully completed generation for test case ${testCaseId} (traceId: ${
+        traceId || "n/a"
+      })`
     );
-    res.json({ result });
+    res.json({
+      testCase:
+        result && typeof result === "object" && "testCase" in result
+          ? (result as { testCase: any }).testCase
+          : result,
+      traceId,
+    });
   } catch (error) {
     console.error("Error generating test cases:", error);
     res.status(500).json({

@@ -25,20 +25,33 @@ const GenerateSubTestsButton: React.FC<Props> = ({
     );
 
     try {
-      const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/generate-test`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ testCaseId }),
-        }
-      );
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+      const resp = await fetch(`${baseUrl}/api/generate-test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ testCaseId }),
+      });
 
       if (resp.ok) {
+        const data = await resp
+          .json()
+          .catch(() => ({ traceId: null as string | null }));
+        const traceId = data?.traceId ?? null;
+
         toast.success("Sub-tests generated successfully!", {
           id: progressToast,
+          action:
+            traceId && typeof traceId === "string"
+              ? {
+                  label: "View RAG trace",
+                  onClick: () => {
+                    router.push(`/rag/trace/${traceId}`);
+                  },
+                }
+              : undefined,
         });
         router.refresh();
       } else {

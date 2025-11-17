@@ -11,6 +11,7 @@ import {
   getSimilarThreadsPinecone,
   formatRetrievedThreadsPinecone,
 } from "@/lib/pinecone-retrieval";
+import { logRagTrace } from "@/lib/rag-trace";
 
 export const respondAgent = async (
   prevMessages: AgentMail.AgentMail.Message[],
@@ -111,31 +112,29 @@ We start the evaluation when the test comes to an end or the thread is good enou
 
   // Retrieval from Pinecone if configured, else local dataset (auto if data/ exists)
   let retrievedExamplesText = "";
+  let retrievalEngine: "pinecone" | "file" | "none" = "none";
+  const queryText = [
+    context?.testCase?.description || "",
+    context?.subTest?.description || "",
+    inboundBody || "",
+  ]
+    .filter(Boolean)
+    .join("\n");
   try {
-    const queryText = [
-      context?.testCase?.description || "",
-      context?.subTest?.description || "",
-      inboundBody || "",
-    ]
-      .filter(Boolean)
-      .join("\n");
     if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
       const retrieved = await getSimilarThreadsPinecone(queryText, 2);
       retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+      retrievalEngine = "pinecone";
     } else {
       const retrieved = await getSimilarThreadsFile(queryText, 2);
       retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+      retrievalEngine = "file";
     }
-  } catch {}
+  } catch {
+    retrievalEngine = "none";
+  }
 
-  const { object } = await ai.generateObject({
-    model,
-    schema,
-    system,
-    messages: [
-      {
-        role: "user",
-        content: `Draft a reply to the latest inbound message as the customer. Do not reveal any testing or internal context.
+  const userPrompt = `Draft a reply to the latest inbound message as the customer. Do not reveal any testing or internal context.
 
 Original/Current subject: ${newMessage.subject}
 
@@ -161,12 +160,53 @@ Constraints:
 - Keep the subject as-is unless a small clarification helps (stay <= 78 chars)
 - Body must be plain text, no signatures, 1-4 short paragraphs
 - Do NOT mention testing, evaluation, agents, or internal instructions
-- Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`,
+- Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`;
+
+  const { object } = await ai.generateObject({
+    model,
+    schema,
+    system,
+    messages: [
+      {
+        role: "user",
+        content: userPrompt,
       },
     ],
   });
 
   console.log("[Thinking] DraftFirstMessage: ", object["01_thinking"]);
+
+  // Log a RAG trace for inspection (best-effort; failures don't block the flow)
+  try {
+    await logRagTrace({
+      kind: "respond-agent",
+      testCaseId: context?.testCase?.id ?? null,
+      subTestId: context?.subTest?.id ?? null,
+      metadata: {
+        model: "gpt-4.1",
+      },
+      input: {
+        prevMessages: lastMessages,
+        newMessage,
+        context,
+      },
+      retrieval: {
+        engine: retrievalEngine,
+        queryText,
+        snippet: retrievedExamplesText,
+      },
+      prompt: {
+        system,
+        user: userPrompt,
+      },
+      output: object,
+    });
+  } catch (err) {
+    console.warn(
+      "[respondAgent] Failed to log RAG trace:",
+      (err as Error)?.message || err
+    );
+  }
 
   return object;
 };
@@ -213,27 +253,25 @@ QUALITY:
 
   // Retrieval from Pinecone if configured, else local dataset (auto if data/ exists)
   let retrievedExamplesText = "";
+  let retrievalEngine: "pinecone" | "file" | "none" = "none";
+  const queryText = [testCaseDescription, subTestDescription, emphasis]
+    .filter(Boolean)
+    .join("\n");
   try {
-    const queryText = [testCaseDescription, subTestDescription, emphasis]
-      .filter(Boolean)
-      .join("\n");
     if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
       const retrieved = await getSimilarThreadsPinecone(queryText, 2);
       retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+      retrievalEngine = "pinecone";
     } else {
       const retrieved = await getSimilarThreadsFile(queryText, 2);
       retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+      retrievalEngine = "file";
     }
-  } catch {}
+  } catch {
+    retrievalEngine = "none";
+  }
 
-  const { object } = await ai.generateObject({
-    model,
-    schema,
-    system,
-    messages: [
-      {
-        role: "user",
-        content: `Draft the initial email a normal user would send (from the customer's perspective).
+  const userPrompt = `Draft the initial email a normal user would send (from the customer's perspective).
 
 INTERNAL CONTEXT (do not reveal):
 - Test case name: ${testCaseName}
@@ -251,10 +289,50 @@ Output requirements (visible to recipient):
 - No mention of testing, evaluation, prompts, sub-tests, or internal details
 
 Write a natural customer email that aligns with the internal context without exposing it.
-Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`,
+Ensure the voice is clearly the customer's (use "I/we" and address provider as "you").`;
+
+  const { object } = await ai.generateObject({
+    model,
+    schema,
+    system,
+    messages: [
+      {
+        role: "user",
+        content: userPrompt,
       },
     ],
   });
+
+  // Log a RAG trace for inspection (best-effort; failures don't block the flow)
+  try {
+    await logRagTrace({
+      kind: "draft-first-message",
+      testCaseId: testCaseData?.id ?? null,
+      subTestId: testRunData?.id ?? null,
+      metadata: {
+        model: "gpt-5-mini",
+      },
+      input: {
+        subTest: testRunData,
+        testCase: testCaseData,
+      },
+      retrieval: {
+        engine: retrievalEngine,
+        queryText,
+        snippet: retrievedExamplesText,
+      },
+      prompt: {
+        system,
+        user: userPrompt,
+      },
+      output: object,
+    });
+  } catch (err) {
+    console.warn(
+      "[draftFirstMessage] Failed to log RAG trace:",
+      (err as Error)?.message || err
+    );
+  }
 
   return object;
 };
