@@ -34,3 +34,38 @@ export const llmJudgeEmailTestSchema = z.object({
 export type LlmJudgeEmailTestSchemaType = z.infer<
   typeof llmJudgeEmailTestSchema
 >;
+
+export const llmJudgePhoneCallSchema = z.object({
+  succeeded: z
+    .boolean()
+    .describe(
+      "Whether the agent successfully fulfilled the user intent based on the call transcript"
+    ),
+  explanation: z
+    .string()
+    .describe(
+      "Detailed explanation of the judgment, covering what the agent did well or poorly"
+    ),
+  divergenceExplanation: z
+    .string()
+    .describe(
+      "If the test failed, explain where and how the agent diverged from expected behavior"
+    ),
+  suggestedFix: z
+    .string()
+    .describe(
+      "Actionable recommendations for how the agent could improve to meet expectations"
+    ),
+  conversationQuality: z
+    .enum(["excellent", "good", "fair", "poor"])
+    .optional()
+    .describe("Overall quality of the conversation flow"),
+  callDurationAppropriate: z
+    .boolean()
+    .optional()
+    .describe("Whether the call duration was reasonable for the task"),
+});
+
+export type LlmJudgePhoneCallSchemaType = z.infer<
+  typeof llmJudgePhoneCallSchema
+>;
