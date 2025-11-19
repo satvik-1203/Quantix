@@ -1,10 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 
-console.log(process.env.DATABASE_URL);
-
 export default defineConfig({
-  schema: "./src/db/schema.ts",
-  out: "./src/db/migrations",
+  schema: "../../packages/drizzle/src/db/schema.ts",
+  out: "../../packages/drizzle/src/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL || "postgresql://postgres.reallfguustgjjtaqjfx:L94EHWcEiNwJedZH@aws-1-us-east-1.pooler.supabase.com:6543/postgres",

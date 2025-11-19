@@ -4,9 +4,9 @@ import * as schema from "./schema";
 export * from "drizzle-orm";
 
 const HARD_CODED_DATABASE_URL =
-  "postgresql://postgres.reallfgutstgjjtaqjfx:L94EHWcEiNwJedZH@aws-1-us-east-1.pooler.supabase.com:6543/postgres";
+  "postgresql://postgres.reallfguustgjjtaqjfx:L94EHWcEiNwJedZH@aws-1-us-east-1.pooler.supabase.com:6543/postgres";
 
-const databaseUrl = HARD_CODED_DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL || HARD_CODED_DATABASE_URL;
 
 if (!process.env.DATABASE_URL) {
   console.warn("[DB] DATABASE_URL is not set. Using hardcoded fallback URL.");
