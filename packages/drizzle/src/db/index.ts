@@ -29,3 +29,4 @@ export const db = drizzle(sql, {
 });
 
 export * from "./schema";
+export * from "./soft-delete";

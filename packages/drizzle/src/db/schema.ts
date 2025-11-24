@@ -34,23 +34,30 @@ export const users = pgTable(
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
+    deletedAt: timestamp("deleted_at"),
   },
   (table) => [
     unique("users_email_unique").on(table.email),
     index("users_email_index").on(table.email),
+    index("users_deleted_at_index").on(table.deletedAt),
   ]
 );
 
-export const organizations = pgTable("organizations", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 100 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 100 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+    deletedAt: timestamp("deleted_at"),
+  },
+  (table) => [index("organizations_deleted_at_index").on(table.deletedAt)]
+);
 
 export const userOrganizations = pgTable(
   "user_organizations",
@@ -98,11 +105,13 @@ export const testCases = pgTable(
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date()),
+    deletedAt: timestamp("deleted_at"),
   },
   (table) => [
     index("test_cases_user_index").on(table.userId),
     index("test_cases_org_index").on(table.organizationId),
     index("test_cases_created_at_index").on(table.createdAt),
+    index("test_cases_deleted_at_index").on(table.deletedAt),
   ]
 );
 
@@ -116,8 +125,12 @@ export const subTests = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
     expected: text("expected"),
+    deletedAt: timestamp("deleted_at"),
   },
-  (table: any) => [index("test_case_id_index").on(table.testCaseId)]
+  (table: any) => [
+    index("test_case_id_index").on(table.testCaseId),
+    index("sub_tests_deleted_at_index").on(table.deletedAt),
+  ]
 );
 export const subTextActivity = pgTable(
   "sub_text_activity",
