@@ -81,9 +81,19 @@ export default async function TestCasesPage({
                 Create, search, and manage voice bot test suites
               </p>
             </div>
-            <Badge variant="secondary" className="h-7 px-3 text-sm">
-              {count}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="secondary" className="h-7 px-3 text-sm">
+                {count}
+              </Badge>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-[11px]"
+              >
+                <Link href="/generate/test-case/analytics">View Analytics</Link>
+              </Button>
+            </div>
           </div>
 
           <div className="mt-6">
