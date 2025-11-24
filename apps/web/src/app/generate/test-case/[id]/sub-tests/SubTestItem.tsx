@@ -214,7 +214,7 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
   };
 
   return (
-    <Card>
+    <Card id={`subtest-${subTest.id}`}>
       <CardHeader>
         <div>
           <CardTitle className="text-base md:text-lg">

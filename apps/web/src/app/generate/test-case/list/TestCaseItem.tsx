@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateTestCase, deleteTestCase } from "../action";
+import { updateTestCase, deleteTestCase, duplicateTestCase } from "../action";
 import {
   Edit,
   Save,
@@ -41,6 +41,7 @@ import {
   Mail,
   Tag,
   MoreVertical,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -85,6 +86,7 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -139,6 +141,20 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
     }
   };
 
+  const handleDuplicate = async () => {
+    setIsDuplicating(true);
+    try {
+      await duplicateTestCase(testCase.id);
+      toast.success("Test case duplicated successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to duplicate test case:", error);
+      toast.error("Failed to duplicate test case");
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
+
   return (
     <Card className="group hover:bg-muted/50 transition-colors overflow-hidden">
       {!isEditing ? (
@@ -174,6 +190,16 @@ export default function TestCaseItem({ testCase }: { testCase: TestCase }) {
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicate();
+                        }}
+                        disabled={isDuplicating}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        {isDuplicating ? "Duplicating..." : "Duplicate"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

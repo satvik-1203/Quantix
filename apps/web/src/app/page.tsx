@@ -30,12 +30,10 @@ type SearchParams = {
   sort?: "recent" | "updated" | "name";
 };
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: SearchParams;
+export default async function Home(props: {
+  searchParams: Promise<SearchParams>;
 }) {
-  const params = searchParams ?? {};
+  const params = await props.searchParams;
   const query = (params.q ?? "").trim();
   const sort = (params.sort as SearchParams["sort"]) ?? "recent";
 
