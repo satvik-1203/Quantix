@@ -1,13 +1,13 @@
-import { db, testCases, subTests } from "@workspace/drizzle";
+import { db, testCases, subTests, withoutDeleted } from "@workspace/drizzle";
 import { eq } from "drizzle-orm";
 import { generateTestCases } from "./ai/generate-test";
 import { logRagTrace } from "@/lib/rag-trace";
 
 export const generateTestService = async (testCaseId: number) => {
-  // Get the test case
+  // Get the test case (exclude soft-deleted)
   try {
     const testCase = await db.query.testCases.findFirst({
-      where: eq(testCases.id, testCaseId),
+      where: withoutDeleted(eq(testCases.id, testCaseId), testCases.deletedAt),
     });
 
     if (!testCase) {

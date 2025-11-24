@@ -20,6 +20,7 @@ import {
   Star,
   ChevronLeft,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -41,6 +42,11 @@ const menuItems = [
     title: "Email DataLake",
     url: "/dataset/threads",
     icon: FileText,
+  },
+  {
+    title: "Trash",
+    url: "/trash",
+    icon: Trash2,
   },
 ];
 
