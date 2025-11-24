@@ -11,7 +11,7 @@ import {
   formatRetrievedThreadsPinecone,
 } from "@/lib/pinecone-retrieval";
 
-const model = openai("gpt-5-mini");
+const model = openai("gpt-4o-mini");
 
 type GeneratedSubTest = {
   name: string;
@@ -126,7 +126,7 @@ Ensure each subTest adheres to the schema (name, prompt, expected) with non-dupl
     return {
       subTests: result.object.subTests,
       rag: {
-        model: "gpt-5-mini",
+        model: "gpt-4o-mini",
         systemPrompt: sysPrompt,
         userPrompt,
         retrieval: {
@@ -146,7 +146,7 @@ Ensure each subTest adheres to the schema (name, prompt, expected) with non-dupl
     return {
       subTests: [],
       rag: {
-        model: "gpt-5-mini",
+        model: "gpt-4o-mini",
         systemPrompt: "",
         userPrompt: "",
         retrieval: {
