@@ -9,6 +9,7 @@ import agentmailRouter from "./routers/agentmail/controller";
 import emailAnalyticsRouter from "./routers/email-analytics/controller";
 import emailDatasetRouter from "./routers/email-dataset/controller";
 import ragTraceRouter from "./routers/rag-trace/controller";
+import llmDialogRouter from "./routers/llm-dialog/controller";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/agentmail", agentmailRouter);
 app.use("/api/email-analytics", emailAnalyticsRouter);
 app.use("/api/email-dataset", emailDatasetRouter);
 app.use("/api/rag-trace", ragTraceRouter);
+app.use("/api/llm-dialog", llmDialogRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
