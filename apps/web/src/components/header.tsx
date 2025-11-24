@@ -4,7 +4,10 @@ import { ModeToggle } from "./mode-toggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Header() {
-  const links = [{ to: "/", label: "Home" }] as const;
+  const links = [
+    { to: "/", label: "Home" },
+    { to: "/analytics", label: "Analytics" },
+  ] as const;
 
   return (
     <div>

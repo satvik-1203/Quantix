@@ -45,3 +45,18 @@ export const getSubTestsByTestCaseId = async (testCaseId: number) => {
     .where(eq(subTests.testCaseId, testCaseId))
     .orderBy(subTests.createdAt);
 };
+
+export const duplicateTestCase = async (id: number) => {
+  const original = await getTestCaseById(id);
+  if (!original) {
+    throw new Error("Test case not found");
+  }
+
+  await db.insert(testCases).values({
+    name: `${original.name} (Copy)`,
+    description: original.description,
+    kindOfTestCases: original.kindOfTestCases,
+    testPhoneNumber: original.testPhoneNumber,
+    email: original.email,
+  });
+};
