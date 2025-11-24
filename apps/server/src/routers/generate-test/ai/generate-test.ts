@@ -13,7 +13,29 @@ import {
 
 const model = openai("gpt-4o-mini");
 
-export const generateTestCases = async (testCase: TestCaseRecord) => {
+type GeneratedSubTest = {
+  name: string;
+  prompt: string;
+  expected: string;
+};
+
+export type GenerateTestCasesResult = {
+  subTests: GeneratedSubTest[];
+  rag: {
+    model: string;
+    systemPrompt: string;
+    userPrompt: string;
+    retrieval: {
+      engine: "pinecone" | "file" | "none" | null;
+      queryText: string;
+      snippet: string;
+    };
+  };
+};
+
+export const generateTestCases = async (
+  testCase: TestCaseRecord
+): Promise<GenerateTestCasesResult> => {
   console.log("Starting test case generation for:", testCase.id);
 
   try {
@@ -45,29 +67,27 @@ Return strictly valid JSON matching the schema above and nothing else.`;
 
     // Pinecone if configured; else local dataset retrieval (auto if data/ exists)
     let retrievedExamplesText = "";
+    let retrievalEngine: "pinecone" | "file" | "none" = "none";
+    let query = "";
     try {
-      const query = [testCase.description, testCase.kindOfTestCases]
+      query = [testCase.description, testCase.kindOfTestCases]
         .filter(Boolean)
         .join("\n");
       if (process.env.PINECONE_KEY && process.env.PINECONE_ENDPOINT) {
         const retrieved = await getSimilarThreadsPinecone(query, 4);
         retrievedExamplesText = formatRetrievedThreadsPinecone(retrieved);
+        retrievalEngine = "pinecone";
       } else {
         const retrieved = await getSimilarThreadsFile(query, 4);
         retrievedExamplesText = formatRetrievedThreadsFile(retrieved);
+        retrievalEngine = "file";
       }
     } catch (err) {
       console.warn("Failed to retrieve similar email threads:", err);
+      retrievalEngine = "none";
     }
 
-    const result = await ai.generateObject({
-      model,
-      schema: generateTestCasesSchema,
-      system: sysPrompt,
-      messages: [
-        {
-          role: "user",
-          content: `Generate exactly 8 subTests.
+    const userPrompt = `Generate exactly 8 subTests.
 
 Target voice agent description:
 ${testCase.description}
@@ -83,7 +103,16 @@ ${
 }
 
 Locale/style: US English; realistic dates/times; no PII.
-Ensure each subTest adheres to the schema (name, prompt, expected) with non-duplicative coverage across types.`,
+Ensure each subTest adheres to the schema (name, prompt, expected) with non-duplicative coverage across types.`;
+
+    const result = await ai.generateObject({
+      model,
+      schema: generateTestCasesSchema,
+      system: sysPrompt,
+      messages: [
+        {
+          role: "user",
+          content: userPrompt,
         },
       ],
     });
@@ -94,7 +123,19 @@ Ensure each subTest adheres to the schema (name, prompt, expected) with non-dupl
       "sub-tests"
     );
 
-    return result.object.subTests;
+    return {
+      subTests: result.object.subTests,
+      rag: {
+        model: "gpt-4o-mini",
+        systemPrompt: sysPrompt,
+        userPrompt,
+        retrieval: {
+          engine: retrievalEngine,
+          queryText: query,
+          snippet: retrievedExamplesText,
+        },
+      },
+    };
   } catch (error) {
     console.error(
       "Error generating test cases for test case ID:",
@@ -102,6 +143,18 @@ Ensure each subTest adheres to the schema (name, prompt, expected) with non-dupl
       error
     );
 
-    return [];
+    return {
+      subTests: [],
+      rag: {
+        model: "gpt-4o-mini",
+        systemPrompt: "",
+        userPrompt: "",
+        retrieval: {
+          engine: "none",
+          queryText: "",
+          snippet: "",
+        },
+      },
+    };
   }
 };
