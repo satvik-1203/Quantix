@@ -43,7 +43,7 @@ function mockCase(): TestCaseRecord {
 
 async function main() {
 	const tc = mockCase();
-	const subTests = await generateTestCases(tc);
+	const { subTests } = await generateTestCases(tc);
 
 	// Diversity: require at least 5 distinct categories
 	const kinds = new Set<SubTestType>();
