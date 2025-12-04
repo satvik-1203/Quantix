@@ -1,0 +1,240 @@
+{
+  "params": {
+    "description": "- Create customer-receptionist email chats where the customer is requesting to book a venue for a party reservation. ",
+    "headers": [
+      "thead_id",
+      "email",
+      "subject",
+      "body",
+      "from",
+      "to",
+      "cc",
+      "bcc",
+      "date"
+    ],
+    "rowCount": 20
+  },
+  "rows": [
+    {
+      "thead_id": "TH001",
+      "email": "jane.doe@example.com",
+      "subject": "Venue Booking Inquiry",
+      "body": "Hi, I'd like to book your venue for a birthday party on June 20th. Is that date available?",
+      "from": "Jane Doe <jane.doe@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-04-30"
+    },
+    {
+      "thead_id": "TH001",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Venue Booking Inquiry",
+      "body": "Hello Jane, June 20th is available. How many guests do you expect?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "jane.doe@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-04-30"
+    },
+    {
+      "thead_id": "TH002",
+      "email": "matthew.smith@example.com",
+      "subject": "Party Venue Reservation Request",
+      "body": "Hi, I am interested in reserving the banquet hall for a graduation party on July 12th. Please let me know the process.",
+      "from": "Matthew Smith <matthew.smith@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-01"
+    },
+    {
+      "thead_id": "TH002",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Party Venue Reservation Request",
+      "body": "Hi Matthew, Thank you for your interest. The banquet hall is available on July 12th. Would you like to schedule a tour?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "matthew.smith@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-01"
+    },
+    {
+      "thead_id": "TH003",
+      "email": "linda.chan@example.com",
+      "subject": "Booking Inquiry for Anniversary Party",
+      "body": "Hello, I want to book a space for our anniversary party on August 15th. Can you provide pricing details?",
+      "from": "Linda Chan <linda.chan@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-02"
+    },
+    {
+      "thead_id": "TH003",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Booking Inquiry for Anniversary Party",
+      "body": "Hi Linda, Congratulations! Our packages start at $500. Would you like to see the full menu and amenities?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "linda.chan@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-02"
+    },
+    {
+      "thead_id": "TH004",
+      "email": "alex.wilson@example.com",
+      "subject": "Reservation for Kids Party",
+      "body": "Good afternoon, Is your venue available for a children's party on September 10th?",
+      "from": "Alex Wilson <alex.wilson@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-03"
+    },
+    {
+      "thead_id": "TH004",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Reservation for Kids Party",
+      "body": "Hello Alex, September 10th is open. How many kids are you expecting? Any special requirements?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "alex.wilson@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-03"
+    },
+    {
+      "thead_id": "TH005",
+      "email": "emma.jones@example.com",
+      "subject": "Venue Availability for Baby Shower",
+      "body": "Hi, I am planning a baby shower on May 25th. Is your event hall free on that date?",
+      "from": "Emma Jones <emma.jones@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-04"
+    },
+    {
+      "thead_id": "TH005",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Venue Availability for Baby Shower",
+      "body": "Hi Emma, Yes, May 25th is available for your baby shower. Let us know your preferred time.",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "emma.jones@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-04"
+    },
+    {
+      "thead_id": "TH006",
+      "email": "paul.brown@example.com",
+      "subject": "Request to Book Venue for Engagement",
+      "body": "Hello, I'd like to reserve your venue for an engagement party on July 5th. Please advise on next steps.",
+      "from": "Paul Brown <paul.brown@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-05"
+    },
+    {
+      "thead_id": "TH006",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Request to Book Venue for Engagement",
+      "body": "Hi Paul, July 5th is open. We can hold the date for you. Would you like catering options?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "paul.brown@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-05"
+    },
+    {
+      "thead_id": "TH007",
+      "email": "nina.kim@example.com",
+      "subject": "Party Space Reservation Needed",
+      "body": "Hi, Is your party space available for a reunion on June 30th?",
+      "from": "Nina Kim <nina.kim@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-06"
+    },
+    {
+      "thead_id": "TH007",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Party Space Reservation Needed",
+      "body": "Hi Nina, June 30th is currently free. How many guests are you planning for?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "nina.kim@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-06"
+    },
+    {
+      "thead_id": "TH008",
+      "email": "carla.green@example.com",
+      "subject": "Booking Request for Sweet 16",
+      "body": "Hello, I wish to book your event hall for my daughter's sweet 16 on August 2nd. Please confirm availability.",
+      "from": "Carla Green <carla.green@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-07"
+    },
+    {
+      "thead_id": "TH008",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Booking Request for Sweet 16",
+      "body": "Hi Carla, August 2nd is available for your event. Would you like to discuss decoration options?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "carla.green@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-07"
+    },
+    {
+      "thead_id": "TH009",
+      "email": "oliver.martin@example.com",
+      "subject": "Reserve Venue for Company Party",
+      "body": "Good morning, I'd like to reserve your venue for a company party on July 19th. Please let me know the deposit.",
+      "from": "Oliver Martin <oliver.martin@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-08"
+    },
+    {
+      "thead_id": "TH009",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Reserve Venue for Company Party",
+      "body": "Hello Oliver, July 19th is open. The deposit is $200. Shall I send the payment link?",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "oliver.martin@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-08"
+    },
+    {
+      "thead_id": "TH010",
+      "email": "sophie.lee@example.com",
+      "subject": "Venue Booking for Surprise Party",
+      "body": "Hi, I want to book your venue for a surprise party on June 10th. Is it possible?",
+      "from": "Sophie Lee <sophie.lee@example.com>",
+      "to": "reception@partyvenue.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-09"
+    },
+    {
+      "thead_id": "TH010",
+      "email": "reception@partyvenue.com",
+      "subject": "Re: Venue Booking for Surprise Party",
+      "body": "Hi Sophie, June 10th is free for booking. Let us know your requirements.",
+      "from": "Reception <reception@partyvenue.com>",
+      "to": "sophie.lee@example.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-05-09"
+    }
+  ],
+  "csv": "thead_id,email,subject,body,from,to,cc,bcc,date\nTH001,jane.doe@example.com,Venue Booking Inquiry,\"Hi, I'd like to book your venue for a birthday party on June 20th. Is that date available?\",Jane Doe <jane.doe@example.com>,reception@partyvenue.com,,,2024-04-30\nTH001,reception@partyvenue.com,Re: Venue Booking Inquiry,\"Hello Jane, June 20th is available. How many guests do you expect?\",Reception <reception@partyvenue.com>,jane.doe@example.com,,,2024-04-30\nTH002,matthew.smith@example.com,Party Venue Reservation Request,\"Hi, I am interested in reserving the banquet hall for a graduation party on July 12th. Please let me know the process.\",Matthew Smith <matthew.smith@example.com>,reception@partyvenue.com,,,2024-05-01\nTH002,reception@partyvenue.com,Re: Party Venue Reservation Request,\"Hi Matthew, Thank you for your interest. The banquet hall is available on July 12th. Would you like to schedule a tour?\",Reception <reception@partyvenue.com>,matthew.smith@example.com,,,2024-05-01\nTH003,linda.chan@example.com,Booking Inquiry for Anniversary Party,\"Hello, I want to book a space for our anniversary party on August 15th. Can you provide pricing details?\",Linda Chan <linda.chan@example.com>,reception@partyvenue.com,,,2024-05-02\nTH003,reception@partyvenue.com,Re: Booking Inquiry for Anniversary Party,\"Hi Linda, Congratulations! Our packages start at $500. Would you like to see the full menu and amenities?\",Reception <reception@partyvenue.com>,linda.chan@example.com,,,2024-05-02\nTH004,alex.wilson@example.com,Reservation for Kids Party,\"Good afternoon, Is your venue available for a children's party on September 10th?\",Alex Wilson <alex.wilson@example.com>,reception@partyvenue.com,,,2024-05-03\nTH004,reception@partyvenue.com,Re: Reservation for Kids Party,\"Hello Alex, September 10th is open. How many kids are you expecting? Any special requirements?\",Reception <reception@partyvenue.com>,alex.wilson@example.com,,,2024-05-03\nTH005,emma.jones@example.com,Venue Availability for Baby Shower,\"Hi, I am planning a baby shower on May 25th. Is your event hall free on that date?\",Emma Jones <emma.jones@example.com>,reception@partyvenue.com,,,2024-05-04\nTH005,reception@partyvenue.com,Re: Venue Availability for Baby Shower,\"Hi Emma, Yes, May 25th is available for your baby shower. Let us know your preferred time.\",Reception <reception@partyvenue.com>,emma.jones@example.com,,,2024-05-04\nTH006,paul.brown@example.com,Request to Book Venue for Engagement,\"Hello, I'd like to reserve your venue for an engagement party on July 5th. Please advise on next steps.\",Paul Brown <paul.brown@example.com>,reception@partyvenue.com,,,2024-05-05\nTH006,reception@partyvenue.com,Re: Request to Book Venue for Engagement,\"Hi Paul, July 5th is open. We can hold the date for you. Would you like catering options?\",Reception <reception@partyvenue.com>,paul.brown@example.com,,,2024-05-05\nTH007,nina.kim@example.com,Party Space Reservation Needed,\"Hi, Is your party space available for a reunion on June 30th?\",Nina Kim <nina.kim@example.com>,reception@partyvenue.com,,,2024-05-06\nTH007,reception@partyvenue.com,Re: Party Space Reservation Needed,\"Hi Nina, June 30th is currently free. How many guests are you planning for?\",Reception <reception@partyvenue.com>,nina.kim@example.com,,,2024-05-06\nTH008,carla.green@example.com,Booking Request for Sweet 16,\"Hello, I wish to book your event hall for my daughter's sweet 16 on August 2nd. Please confirm availability.\",Carla Green <carla.green@example.com>,reception@partyvenue.com,,,2024-05-07\nTH008,reception@partyvenue.com,Re: Booking Request for Sweet 16,\"Hi Carla, August 2nd is available for your event. Would you like to discuss decoration options?\",Reception <reception@partyvenue.com>,carla.green@example.com,,,2024-05-07\nTH009,oliver.martin@example.com,Reserve Venue for Company Party,\"Good morning, I'd like to reserve your venue for a company party on July 19th. Please let me know the deposit.\",Oliver Martin <oliver.martin@example.com>,reception@partyvenue.com,,,2024-05-08\nTH009,reception@partyvenue.com,Re: Reserve Venue for Company Party,\"Hello Oliver, July 19th is open. The deposit is $200. Shall I send the payment link?\",Reception <reception@partyvenue.com>,oliver.martin@example.com,,,2024-05-08\nTH010,sophie.lee@example.com,Venue Booking for Surprise Party,\"Hi, I want to book your venue for a surprise party on June 10th. Is it possible?\",Sophie Lee <sophie.lee@example.com>,reception@partyvenue.com,,,2024-05-09\nTH010,reception@partyvenue.com,Re: Venue Booking for Surprise Party,\"Hi Sophie, June 10th is free for booking. Let us know your requirements.\",Reception <reception@partyvenue.com>,sophie.lee@example.com,,,2024-05-09"
+}

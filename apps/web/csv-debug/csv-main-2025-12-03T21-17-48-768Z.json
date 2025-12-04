@@ -1,0 +1,198 @@
+{
+  "params": {
+    "description": "- Create customer-receptionist email chats where the customer is requesting to book a venue for a party reservation. ",
+    "headers": [
+      "thread_id",
+      "email",
+      "subject",
+      "from",
+      "to",
+      "date",
+      "body"
+    ],
+    "rowCount": 20
+  },
+  "rows": [
+    {
+      "thread_id": "T001",
+      "email": "jane.doe@email.com",
+      "subject": "Party Reservation Inquiry",
+      "from": "Jane Doe",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-01",
+      "body": "Hi, I would like to book the venue for a birthday party next month. Please let me know the available dates."
+    },
+    {
+      "thread_id": "T002",
+      "email": "mark.smith@email.com",
+      "subject": "Availability for Party Booking",
+      "from": "Mark Smith",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-02",
+      "body": "Hello, I am interested in reserving a hall for a graduation party. Can you share your availability in July?"
+    },
+    {
+      "thread_id": "T003",
+      "email": "lisa.chan@email.com",
+      "subject": "Booking Request for Anniversary",
+      "from": "Lisa Chan",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-02",
+      "body": "Good morning, I’d like to book a venue for our anniversary celebration on August 10th. Is that date open?"
+    },
+    {
+      "thread_id": "T004",
+      "email": "paul.rivers@email.com",
+      "subject": "Venue Reservation Needed",
+      "from": "Paul Rivers",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-03",
+      "body": "Hi, I want to reserve a space for a party of 40 people on June 20th. Let me know if you have availability."
+    },
+    {
+      "thread_id": "T005",
+      "email": "susan.kim@email.com",
+      "subject": "Party Venue Booking Info",
+      "from": "Susan Kim",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-03",
+      "body": "Hello, I’m looking to book your venue for a baby shower in mid-July. Could you send me the rates and available dates?"
+    },
+    {
+      "thread_id": "T006",
+      "email": "david.lee@email.com",
+      "subject": "Request to Book Hall",
+      "from": "David Lee",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-04",
+      "body": "Hi, I’d like to book your reception hall for a small party on July 22nd. Is it available?"
+    },
+    {
+      "thread_id": "T007",
+      "email": "emily.jordan@email.com",
+      "subject": "Venue Reservation Inquiry",
+      "from": "Emily Jordan",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-04",
+      "body": "Hello, I’m planning a farewell party and want to reserve your venue for June 28th. Please advise if it’s possible."
+    },
+    {
+      "thread_id": "T008",
+      "email": "michael.brown@email.com",
+      "subject": "Booking Request for Birthday Party",
+      "from": "Michael Brown",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-05",
+      "body": "Good afternoon, I’d like to reserve the venue for a birthday party on July 5th. Please let me know the process."
+    },
+    {
+      "thread_id": "T009",
+      "email": "sarah.lane@email.com",
+      "subject": "Party Hall Availability",
+      "from": "Sarah Lane",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-05",
+      "body": "Hi, I am interested in booking your hall for a party on August 1st. Is it free on that date?"
+    },
+    {
+      "thread_id": "T010",
+      "email": "kevin.patel@email.com",
+      "subject": "Inquiry: Party Venue Reservation",
+      "from": "Kevin Patel",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-06",
+      "body": "Hello, Can I book the venue for a party of 30 on June 30th? Please confirm availability."
+    },
+    {
+      "thread_id": "T011",
+      "email": "olivia.wong@email.com",
+      "subject": "Request for Venue Booking",
+      "from": "Olivia Wong",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-06",
+      "body": "Hi, I’d like to reserve the party hall for a bridal shower on July 15th. Is this possible?"
+    },
+    {
+      "thread_id": "T012",
+      "email": "brian.taylor@email.com",
+      "subject": "Party Reservation Details",
+      "from": "Brian Taylor",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-07",
+      "body": "Hi, I want to book your venue for a retirement party in August. Can you share the available dates and pricing?"
+    },
+    {
+      "thread_id": "T013",
+      "email": "mia.carter@email.com",
+      "subject": "Venue Booking for Kids Party",
+      "from": "Mia Carter",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-07",
+      "body": "Hello, I’m interested in booking your venue for a kids party on July 12th. Please let me know if the date is open."
+    },
+    {
+      "thread_id": "T014",
+      "email": "jason.miller@email.com",
+      "subject": "Booking Request for Party",
+      "from": "Jason Miller",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-08",
+      "body": "Hi, I would like to reserve the hall for a party on June 25th. Please let me know the steps to proceed."
+    },
+    {
+      "thread_id": "T015",
+      "email": "nina.ross@email.com",
+      "subject": "Party Venue Reservation Inquiry",
+      "from": "Nina Ross",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-08",
+      "body": "Good day, Is your venue available for a party on July 18th? Kindly let me know."
+    },
+    {
+      "thread_id": "T016",
+      "email": "daniel.harris@email.com",
+      "subject": "Request to Reserve Party Hall",
+      "from": "Daniel Harris",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-09",
+      "body": "Hello, I want to book your hall for a surprise party on August 3rd. Is it possible to reserve?"
+    },
+    {
+      "thread_id": "T017",
+      "email": "laura.evans@email.com",
+      "subject": "Venue Booking for Graduation",
+      "from": "Laura Evans",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-09",
+      "body": "Hi, I’m interested in booking your venue for a graduation party on July 8th. Is the date available and what are your rates?"
+    },
+    {
+      "thread_id": "T018",
+      "email": "alex.jones@email.com",
+      "subject": "Party Hall Reservation Request",
+      "from": "Alex Jones",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-10",
+      "body": "Hello, I would like to reserve the hall for a party on June 27th. Please let me know if it’s available."
+    },
+    {
+      "thread_id": "T019",
+      "email": "sophie.king@email.com",
+      "subject": "Booking Inquiry: Party Venue",
+      "from": "Sophie King",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-10",
+      "body": "Hi, Can I book your venue for a party on July 2nd? Please send me the details."
+    },
+    {
+      "thread_id": "T020",
+      "email": "tom.baker@email.com",
+      "subject": "Reservation Needed for Party",
+      "from": "Tom Baker",
+      "to": "reception@grandhall.com",
+      "date": "2024-06-11",
+      "body": "Good morning, I want to reserve the party hall for July 25th. Can you confirm availability and rates?"
+    }
+  ],
+  "csv": "thread_id,email,subject,from,to,date,body\nT001,jane.doe@email.com,Party Reservation Inquiry,Jane Doe,reception@grandhall.com,2024-06-01,\"Hi, I would like to book the venue for a birthday party next month. Please let me know the available dates.\"\nT002,mark.smith@email.com,Availability for Party Booking,Mark Smith,reception@grandhall.com,2024-06-02,\"Hello, I am interested in reserving a hall for a graduation party. Can you share your availability in July?\"\nT003,lisa.chan@email.com,Booking Request for Anniversary,Lisa Chan,reception@grandhall.com,2024-06-02,\"Good morning, I’d like to book a venue for our anniversary celebration on August 10th. Is that date open?\"\nT004,paul.rivers@email.com,Venue Reservation Needed,Paul Rivers,reception@grandhall.com,2024-06-03,\"Hi, I want to reserve a space for a party of 40 people on June 20th. Let me know if you have availability.\"\nT005,susan.kim@email.com,Party Venue Booking Info,Susan Kim,reception@grandhall.com,2024-06-03,\"Hello, I’m looking to book your venue for a baby shower in mid-July. Could you send me the rates and available dates?\"\nT006,david.lee@email.com,Request to Book Hall,David Lee,reception@grandhall.com,2024-06-04,\"Hi, I’d like to book your reception hall for a small party on July 22nd. Is it available?\"\nT007,emily.jordan@email.com,Venue Reservation Inquiry,Emily Jordan,reception@grandhall.com,2024-06-04,\"Hello, I’m planning a farewell party and want to reserve your venue for June 28th. Please advise if it’s possible.\"\nT008,michael.brown@email.com,Booking Request for Birthday Party,Michael Brown,reception@grandhall.com,2024-06-05,\"Good afternoon, I’d like to reserve the venue for a birthday party on July 5th. Please let me know the process.\"\nT009,sarah.lane@email.com,Party Hall Availability,Sarah Lane,reception@grandhall.com,2024-06-05,\"Hi, I am interested in booking your hall for a party on August 1st. Is it free on that date?\"\nT010,kevin.patel@email.com,Inquiry: Party Venue Reservation,Kevin Patel,reception@grandhall.com,2024-06-06,\"Hello, Can I book the venue for a party of 30 on June 30th? Please confirm availability.\"\nT011,olivia.wong@email.com,Request for Venue Booking,Olivia Wong,reception@grandhall.com,2024-06-06,\"Hi, I’d like to reserve the party hall for a bridal shower on July 15th. Is this possible?\"\nT012,brian.taylor@email.com,Party Reservation Details,Brian Taylor,reception@grandhall.com,2024-06-07,\"Hi, I want to book your venue for a retirement party in August. Can you share the available dates and pricing?\"\nT013,mia.carter@email.com,Venue Booking for Kids Party,Mia Carter,reception@grandhall.com,2024-06-07,\"Hello, I’m interested in booking your venue for a kids party on July 12th. Please let me know if the date is open.\"\nT014,jason.miller@email.com,Booking Request for Party,Jason Miller,reception@grandhall.com,2024-06-08,\"Hi, I would like to reserve the hall for a party on June 25th. Please let me know the steps to proceed.\"\nT015,nina.ross@email.com,Party Venue Reservation Inquiry,Nina Ross,reception@grandhall.com,2024-06-08,\"Good day, Is your venue available for a party on July 18th? Kindly let me know.\"\nT016,daniel.harris@email.com,Request to Reserve Party Hall,Daniel Harris,reception@grandhall.com,2024-06-09,\"Hello, I want to book your hall for a surprise party on August 3rd. Is it possible to reserve?\"\nT017,laura.evans@email.com,Venue Booking for Graduation,Laura Evans,reception@grandhall.com,2024-06-09,\"Hi, I’m interested in booking your venue for a graduation party on July 8th. Is the date available and what are your rates?\"\nT018,alex.jones@email.com,Party Hall Reservation Request,Alex Jones,reception@grandhall.com,2024-06-10,\"Hello, I would like to reserve the hall for a party on June 27th. Please let me know if it’s available.\"\nT019,sophie.king@email.com,Booking Inquiry: Party Venue,Sophie King,reception@grandhall.com,2024-06-10,\"Hi, Can I book your venue for a party on July 2nd? Please send me the details.\"\nT020,tom.baker@email.com,Reservation Needed for Party,Tom Baker,reception@grandhall.com,2024-06-11,\"Good morning, I want to reserve the party hall for July 25th. Can you confirm availability and rates?\""
+}
