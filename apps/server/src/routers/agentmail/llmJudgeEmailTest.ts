@@ -80,7 +80,7 @@ IMPORTANT:
 
   console.log("Calling llmJudgeEmailTest (thread-level judgment)");
 
-  const { object } = await ai.generateObject({
+  const result = await ai.generateObject({
     model,
     schema: llmJudgeEmailTestSchema,
     messages: [
@@ -90,8 +90,12 @@ IMPORTANT:
       },
     ],
   });
+  const { object } = result;
 
   console.log("Finished calling llmJudgeEmailTest");
 
-  return object;
+  return {
+    ...object,
+    usage: (result as any).usage || { totalTokens: 0, promptTokens: 0, completionTokens: 0 },
+  };
 };

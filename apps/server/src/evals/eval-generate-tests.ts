@@ -88,7 +88,7 @@ async function main() {
   const testCase = getMockTestCase();
 
   console.log("[eval:generate-tests] Generating sub-tests...");
-  const subTests = await generateTestCases(testCase);
+  const { subTests } = await generateTestCases(testCase);
 
   let passed = true;
   const failures: string[] = [];

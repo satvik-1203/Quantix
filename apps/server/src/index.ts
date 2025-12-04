@@ -3,6 +3,7 @@ dotenv.config({ path: ".env" });
 
 import cors from "cors";
 import express from "express";
+import analyticsExpenseRouter from "./routers/analytics-expense/controller";
 import generateTestRouter from "./routers/generate-test/controller";
 import callSubtestRouter from "./routers/call-subtest/controller";
 import agentmailRouter from "./routers/agentmail/controller";
@@ -33,6 +34,7 @@ app.use("/api/call-subtest", callSubtestRouter);
 app.use("/api/agentmail", agentmailRouter);
 app.use("/api/email-analytics", emailAnalyticsRouter);
 app.use("/api/email-dataset", emailDatasetRouter);
+app.use("/api/analytics-expense", analyticsExpenseRouter);
 app.use("/api/rag-trace", ragTraceRouter);
 app.use("/api/llm-dialog", llmDialogRouter);
 

@@ -35,7 +35,7 @@ async function main() {
   console.log("Generating test cases with email thread context...\n");
 
   try {
-    const subTests = await generateTestCases(mockTestCase);
+    const { subTests } = await generateTestCases(mockTestCase);
 
     console.log(`\n${"=".repeat(60)}`);
     console.log(`Successfully generated ${subTests.length} sub-tests:`);

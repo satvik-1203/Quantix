@@ -49,6 +49,8 @@ import {
 } from "@/components/ui/select";
 import EditSubTestForm from "./EditSubTestForm";
 import { getEmailsBySubTestId } from "./actions";
+import ExpenseDialog from "./ExpenseDialog";
+import { DollarSign } from "lucide-react";
 
 interface SubTest {
   id: number;
@@ -80,6 +82,7 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
   const [showCalls, setShowCalls] = useState(false);
   const [callCount, setCallCount] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
+  const [expenseOpen, setExpenseOpen] = useState(false);
   const [emailsOpen, setEmailsOpen] = useState(false);
   const [emails, setEmails] = useState<any[]>([]);
   const [loadingEmails, setLoadingEmails] = useState(false);
@@ -541,18 +544,18 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setEditOpen(true)}
-            >
-              <PencilLine className="h-4 w-4" />
-              <span className="hidden sm:inline">Edit</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
               onClick={() => setTestDialogOpen(true)}
             >
               <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">Test Model</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setExpenseOpen(true)}
+            >
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Expense</span>
             </Button>
           </div>
         </CardAction>
@@ -582,6 +585,12 @@ export default function SubTestItem({ subTest }: { subTest: SubTest }) {
           )}
         </div>
       </CardContent>
+      {/* Expense Dialog */}
+      <ExpenseDialog
+        subTestId={subTest.id}
+        open={expenseOpen}
+        onOpenChange={setExpenseOpen}
+      />
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>

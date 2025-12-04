@@ -160,6 +160,8 @@ export const sendAgentMail = async (req: Request, res: Response) => {
                 ...judge,
               },
             },
+            tokens: (judge as any).usage?.totalTokens || 0,
+            cost: Math.round(((judge as any).usage?.totalTokens || 0) * 0.001), // $10 per 1M tokens = 0.001 cents per token
           })
           .where(eq(subTextActivity.misc_id, newMessage.thread_id));
 

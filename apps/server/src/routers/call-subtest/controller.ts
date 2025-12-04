@@ -134,6 +134,8 @@ router.post("/webhook", async (req, res) => {
             callId: callId,
             messageData: judgment,
           },
+          cost: Math.round((callAny.cost || (callDuration ? callDuration * (0.05 / 60) : 0)) * 100),
+          tokens: (judgment as any).usage?.totalTokens || 0,
           updatedAt: new Date(),
         })
         .where(eq(subTextActivity.misc_id, callId));
@@ -364,6 +366,8 @@ router.post("/evaluate/:callId", async (req, res) => {
           callId: callId,
           messageData: judgment,
         },
+        cost: Math.round((callAny.cost || (callDuration ? callDuration * (0.05 / 60) : 0)) * 100),
+        tokens: (judgment as any).usage?.totalTokens || 0,
         updatedAt: new Date(),
       })
       .where(eq(subTextActivity.misc_id, callId));

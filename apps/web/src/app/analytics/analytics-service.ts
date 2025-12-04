@@ -53,7 +53,6 @@ export async function getActivityOverTime(): Promise<ActivityOverTime[]> {
       ${subTextActivity.type} as type,
       COUNT(*) as count
     FROM ${subTextActivity}
-    WHERE ${subTextActivity.createdAt} > NOW() - INTERVAL '30 days'
     GROUP BY date, ${subTextActivity.status}, ${subTextActivity.type}
     ORDER BY date ASC
   `);
