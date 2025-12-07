@@ -56,6 +56,8 @@ export const subTextActivity = pgTable(
         }
     >(),
     misc_id: text("misc_id"),
+    cost: integer("cost"), // Stored in cents
+    tokens: integer("tokens"),
   },
   (table: any) => [index("sub_test_id_index").on(table.subTestId)]
 );

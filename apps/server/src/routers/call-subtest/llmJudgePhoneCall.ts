@@ -104,7 +104,7 @@ KEY PRINCIPLES:
     `[llmJudgePhoneCall] Evaluating call for sub-test ${subTestRecord?.id}`
   );
 
-  const { object } = await ai.generateObject({
+  const result = await ai.generateObject({
     model,
     schema: llmJudgePhoneCallSchema,
     messages: [
@@ -114,6 +114,7 @@ KEY PRINCIPLES:
       },
     ],
   });
+  const { object } = result;
 
   console.log(
     `[llmJudgePhoneCall] Evaluation complete: ${
@@ -121,5 +122,8 @@ KEY PRINCIPLES:
     }`
   );
 
-  return object;
+  return {
+    ...object,
+    usage: (result as any).usage || { totalTokens: 0, promptTokens: 0, completionTokens: 0 },
+  };
 };
