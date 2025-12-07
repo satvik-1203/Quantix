@@ -1,0 +1,240 @@
+{
+  "params": {
+    "description": "- Create customer-receptionist email chats where the customer is requesting to book a venue for a party reservation. ",
+    "headers": [
+      "thead_id",
+      "email",
+      "subject",
+      "body",
+      "from",
+      "to",
+      "cc",
+      "bcc",
+      "date"
+    ],
+    "rowCount": 20
+  },
+  "rows": [
+    {
+      "thead_id": "1001",
+      "email": "jane.doe@email.com",
+      "subject": "Party Reservation Inquiry",
+      "body": "Hi, I'd like to book a venue for a birthday party on July 15th. Is that date available?",
+      "from": "Jane Doe",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-01"
+    },
+    {
+      "thead_id": "1002",
+      "email": "michael.smith@email.com",
+      "subject": "Venue Booking Request",
+      "body": "Hello, I want to reserve your hall for a graduation party next Saturday. Please let me know the process.",
+      "from": "Michael Smith",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-02"
+    },
+    {
+      "thead_id": "1003",
+      "email": "lisa.m@email.com",
+      "subject": "Availability for Engagement Party",
+      "body": "Hi, is your main room free for an engagement party on August 10th?",
+      "from": "Lisa Martin",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-03"
+    },
+    {
+      "thead_id": "1004",
+      "email": "daniel.lee@email.com",
+      "subject": "Request to Book Venue",
+      "body": "Good morning, I am interested in booking a space for a family reunion on July 28th. What are the rates?",
+      "from": "Daniel Lee",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-04"
+    },
+    {
+      "thead_id": "1005",
+      "email": "emily.harris@email.com",
+      "subject": "Birthday Party Reservation",
+      "body": "Hello, can I reserve your venue for a birthday party for about 30 guests on June 20th?",
+      "from": "Emily Harris",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-05"
+    },
+    {
+      "thead_id": "1006",
+      "email": "robert.jones@email.com",
+      "subject": "Booking Inquiry for Party",
+      "body": "Hi, I would like to know if your venue is available for a party on July 22nd. Please advise.",
+      "from": "Robert Jones",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-06"
+    },
+    {
+      "thead_id": "1007",
+      "email": "sophia.wang@email.com",
+      "subject": "Venue Booking for Kids Party",
+      "body": "Good afternoon, do you have availability for a kids party on June 25th?",
+      "from": "Sophia Wang",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-07"
+    },
+    {
+      "thead_id": "1008",
+      "email": "andrew.kim@email.com",
+      "subject": "Reserve Venue for Party",
+      "body": "Hello, I am planning a surprise party for my friend and would like to book your venue on July 5th.",
+      "from": "Andrew Kim",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-08"
+    },
+    {
+      "thead_id": "1009",
+      "email": "natalie.brown@email.com",
+      "subject": "Party Hall Reservation",
+      "body": "Hi, is your party hall available on August 2nd for an anniversary celebration?",
+      "from": "Natalie Brown",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-09"
+    },
+    {
+      "thead_id": "1010",
+      "email": "david.hernandez@email.com",
+      "subject": "Request to Reserve Venue",
+      "body": "Good day, I would like to reserve your venue for a small party on July 18th. Please confirm.",
+      "from": "David Hernandez",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-10"
+    },
+    {
+      "thead_id": "1011",
+      "email": "amanda.clark@email.com",
+      "subject": "Booking for Birthday Event",
+      "body": "Hello, can you let me know if I can book your venue for a birthday event on June 30th?",
+      "from": "Amanda Clark",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-11"
+    },
+    {
+      "thead_id": "1012",
+      "email": "kevin.morris@email.com",
+      "subject": "Venue Reservation Request",
+      "body": "Hi, I am interested in booking your event space for a party on July 8th.",
+      "from": "Kevin Morris",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-12"
+    },
+    {
+      "thead_id": "1013",
+      "email": "laura.evans@email.com",
+      "subject": "Party Space Booking",
+      "body": "Good morning, is your party space available for a gathering on August 12th?",
+      "from": "Laura Evans",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-13"
+    },
+    {
+      "thead_id": "1014",
+      "email": "brian.taylor@email.com",
+      "subject": "Inquiry: Venue for Party",
+      "body": "Hello, I would like to book your venue for a party on July 25th. Please share details.",
+      "from": "Brian Taylor",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-14"
+    },
+    {
+      "thead_id": "1015",
+      "email": "olivia.martin@email.com",
+      "subject": "Booking Request for Party",
+      "body": "Hi, can I reserve your hall for a birthday party on June 28th?",
+      "from": "Olivia Martin",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-15"
+    },
+    {
+      "thead_id": "1016",
+      "email": "ethan.jackson@email.com",
+      "subject": "Venue Booking for Celebration",
+      "body": "Good afternoon, I am hoping to book your venue for a celebration on July 12th.",
+      "from": "Ethan Jackson",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-16"
+    },
+    {
+      "thead_id": "1017",
+      "email": "mia.rodriguez@email.com",
+      "subject": "Reserve Venue for Birthday",
+      "body": "Hello, is your venue available for a birthday party on August 5th?",
+      "from": "Mia Rodriguez",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-17"
+    },
+    {
+      "thead_id": "1018",
+      "email": "jacob.wilson@email.com",
+      "subject": "Party Reservation Inquiry",
+      "body": "Hi, I want to reserve your space for a party on July 20th. Please let me know if it's available.",
+      "from": "Jacob Wilson",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-18"
+    },
+    {
+      "thead_id": "1019",
+      "email": "ava.thomas@email.com",
+      "subject": "Venue Inquiry for Party",
+      "body": "Good morning, can I book your venue for a family party on June 22nd?",
+      "from": "Ava Thomas",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-19"
+    },
+    {
+      "thead_id": "1020",
+      "email": "william.moore@email.com",
+      "subject": "Booking Venue for Event",
+      "body": "Hello, I am interested in booking your venue for a party on July 29th. Please provide details.",
+      "from": "William Moore",
+      "to": "reception@eventspace.com",
+      "cc": "",
+      "bcc": "",
+      "date": "2024-06-20"
+    }
+  ],
+  "csv": "thead_id,email,subject,body,from,to,cc,bcc,date\n1001,jane.doe@email.com,Party Reservation Inquiry,\"Hi, I'd like to book a venue for a birthday party on July 15th. Is that date available?\",Jane Doe,reception@eventspace.com,,,2024-06-01\n1002,michael.smith@email.com,Venue Booking Request,\"Hello, I want to reserve your hall for a graduation party next Saturday. Please let me know the process.\",Michael Smith,reception@eventspace.com,,,2024-06-02\n1003,lisa.m@email.com,Availability for Engagement Party,\"Hi, is your main room free for an engagement party on August 10th?\",Lisa Martin,reception@eventspace.com,,,2024-06-03\n1004,daniel.lee@email.com,Request to Book Venue,\"Good morning, I am interested in booking a space for a family reunion on July 28th. What are the rates?\",Daniel Lee,reception@eventspace.com,,,2024-06-04\n1005,emily.harris@email.com,Birthday Party Reservation,\"Hello, can I reserve your venue for a birthday party for about 30 guests on June 20th?\",Emily Harris,reception@eventspace.com,,,2024-06-05\n1006,robert.jones@email.com,Booking Inquiry for Party,\"Hi, I would like to know if your venue is available for a party on July 22nd. Please advise.\",Robert Jones,reception@eventspace.com,,,2024-06-06\n1007,sophia.wang@email.com,Venue Booking for Kids Party,\"Good afternoon, do you have availability for a kids party on June 25th?\",Sophia Wang,reception@eventspace.com,,,2024-06-07\n1008,andrew.kim@email.com,Reserve Venue for Party,\"Hello, I am planning a surprise party for my friend and would like to book your venue on July 5th.\",Andrew Kim,reception@eventspace.com,,,2024-06-08\n1009,natalie.brown@email.com,Party Hall Reservation,\"Hi, is your party hall available on August 2nd for an anniversary celebration?\",Natalie Brown,reception@eventspace.com,,,2024-06-09\n1010,david.hernandez@email.com,Request to Reserve Venue,\"Good day, I would like to reserve your venue for a small party on July 18th. Please confirm.\",David Hernandez,reception@eventspace.com,,,2024-06-10\n1011,amanda.clark@email.com,Booking for Birthday Event,\"Hello, can you let me know if I can book your venue for a birthday event on June 30th?\",Amanda Clark,reception@eventspace.com,,,2024-06-11\n1012,kevin.morris@email.com,Venue Reservation Request,\"Hi, I am interested in booking your event space for a party on July 8th.\",Kevin Morris,reception@eventspace.com,,,2024-06-12\n1013,laura.evans@email.com,Party Space Booking,\"Good morning, is your party space available for a gathering on August 12th?\",Laura Evans,reception@eventspace.com,,,2024-06-13\n1014,brian.taylor@email.com,Inquiry: Venue for Party,\"Hello, I would like to book your venue for a party on July 25th. Please share details.\",Brian Taylor,reception@eventspace.com,,,2024-06-14\n1015,olivia.martin@email.com,Booking Request for Party,\"Hi, can I reserve your hall for a birthday party on June 28th?\",Olivia Martin,reception@eventspace.com,,,2024-06-15\n1016,ethan.jackson@email.com,Venue Booking for Celebration,\"Good afternoon, I am hoping to book your venue for a celebration on July 12th.\",Ethan Jackson,reception@eventspace.com,,,2024-06-16\n1017,mia.rodriguez@email.com,Reserve Venue for Birthday,\"Hello, is your venue available for a birthday party on August 5th?\",Mia Rodriguez,reception@eventspace.com,,,2024-06-17\n1018,jacob.wilson@email.com,Party Reservation Inquiry,\"Hi, I want to reserve your space for a party on July 20th. Please let me know if it's available.\",Jacob Wilson,reception@eventspace.com,,,2024-06-18\n1019,ava.thomas@email.com,Venue Inquiry for Party,\"Good morning, can I book your venue for a family party on June 22nd?\",Ava Thomas,reception@eventspace.com,,,2024-06-19\n1020,william.moore@email.com,Booking Venue for Event,\"Hello, I am interested in booking your venue for a party on July 29th. Please provide details.\",William Moore,reception@eventspace.com,,,2024-06-20"
+}

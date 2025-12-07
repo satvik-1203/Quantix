@@ -38,7 +38,7 @@ export default function RootLayout({
             <AppSidebar />
             <SidebarInset>
               <div className="grid grid-rows-[auto_1fr] h-svh">
-                <Header />
+                {/* <Header /> */}
                 {children}
               </div>
               <SidebarReopenButton />

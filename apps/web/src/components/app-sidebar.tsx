@@ -34,7 +34,7 @@ const menuItems = [
   },
   {
     title: "CSV Data Generation",
-    url: "/generate/start",
+    url: "/csv-generate",
     icon: FileSpreadsheet,
   },
   {
