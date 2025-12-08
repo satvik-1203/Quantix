@@ -10,6 +10,11 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:server": "vitest --project server",
+    "test:web": "vitest --project web",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
@@ -18,9 +23,11 @@
     "db:generate": "turbo -F server db:generate",
     "db:migrate": "turbo -F server db:migrate"
   },
-  "dependencies": {},
   "devDependencies": {
-    "turbo": "^2.5.4"
+    "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/ui": "^4.0.15",
+    "turbo": "^2.5.4",
+    "vitest": "^4.0.15"
   },
   "packageManager": "pnpm@9.12.0"
 }
