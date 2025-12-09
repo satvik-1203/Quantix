@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getEmailMetrics, getEmailMetricsCsv } from "./service";
+import { getPineconeStats } from "@/lib/pinecone-stats";
 
 const router: Router = Router();
 
@@ -10,6 +11,18 @@ router.get("/metrics", async (_req, res) => {
     res.status(200).json({ count: data.length, data });
   } catch (err) {
     res.status(500).json({ error: (err as Error)?.message || "unknown" });
+  }
+});
+
+// GET /api/email-analytics/pinecone -> Pinecone index stats
+router.get("/pinecone", async (_req, res) => {
+  try {
+    const stats = await getPineconeStats();
+    res.status(200).json(stats);
+  } catch (err) {
+    res.status(500).json({
+      error: (err as Error)?.message || "Failed to read Pinecone stats",
+    });
   }
 });
 

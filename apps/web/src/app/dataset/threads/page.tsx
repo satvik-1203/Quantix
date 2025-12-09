@@ -104,6 +104,8 @@ export default function EmailDatasetPage() {
   const [metricsError, setMetricsError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<ThreadMetrics[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [pineconeCount, setPineconeCount] = useState<number | null>(null);
+  const [pineconeError, setPineconeError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -191,6 +193,45 @@ export default function EmailDatasetPage() {
       }
     }
     loadMetrics();
+    return () => controller.abort();
+  }, []);
+
+  // Load Pinecone stats (once)
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadPinecone() {
+      try {
+        setPineconeError(null);
+        const baseUrl =
+          process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+        const resp = await fetch(`${baseUrl}/api/email-analytics/pinecone`, {
+          signal: controller.signal,
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(
+            `Failed to load Pinecone stats (${resp.status}): ${text.slice(
+              0,
+              200
+            )}`
+          );
+        }
+        const json = (await resp.json()) as {
+          totalVectorCount?: number;
+        };
+        setPineconeCount(
+          typeof json.totalVectorCount === "number"
+            ? json.totalVectorCount
+            : null
+        );
+      } catch (err) {
+        if ((err as any)?.name === "AbortError") return;
+        setPineconeError(
+          (err as Error)?.message || "Failed to load Pinecone stats."
+        );
+      }
+    }
+    loadPinecone();
     return () => controller.abort();
   }, []);
 
@@ -376,13 +417,37 @@ export default function EmailDatasetPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Email DataLake</h1>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          High-level view of your email test corpus: how many threads you have,
-          how long they are, how quickly they move, and how well they are
-          summarized.
-        </p>
+      <div className="space-y-2">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Email DataLake
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              High-level view of your email test corpus: how many threads you
+              have, how long they are, how quickly they move, and how well they
+              are summarized.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <div className="border rounded-md px-2 py-1 bg-muted/50">
+              <span className="font-semibold">Local dataset:</span>{" "}
+              {metricsLoading
+                ? "Loading..."
+                : metricsError
+                ? "Error"
+                : `${metrics.length.toLocaleString()} threads`}
+            </div>
+            <div className="border rounded-md px-2 py-1 bg-muted/50">
+              <span className="font-semibold">Pinecone:</span>{" "}
+              {pineconeError
+                ? "Error"
+                : pineconeCount !== null
+                ? `${pineconeCount.toLocaleString()} vectors`
+                : "Loading..."}
+            </div>
+          </div>
+        </div>
       </div>
 
       <Card className="p-4 md:p-5 space-y-4 border border-border/60 bg-card">

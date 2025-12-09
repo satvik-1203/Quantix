@@ -1,0 +1,5 @@
+# Supabase Edge Functions Configuration
+
+[functions.llm-dialog-stream]
+verify_jwt = false  # Set to true if you want JWT verification
+

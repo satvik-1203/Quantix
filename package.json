@@ -23,6 +23,13 @@
     "db:generate": "turbo -F server db:generate",
     "db:migrate": "turbo -F server db:migrate"
   },
+<<<<<<< HEAD
+=======
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.38",
+    "ai": "^5.0.56"
+  },
+>>>>>>> f1e580b (add updates)
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.15",
     "@vitest/ui": "^4.0.15",
