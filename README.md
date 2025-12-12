@@ -22,12 +22,27 @@ First, install the dependencies:
 pnpm install
 ```
 
+## Environment Setup
+
+This repo uses **per-app env files**.
+
+1. Copy the example env files:
+
+```bash
+cp apps/server/.env.example apps/server/.env.local
+cp apps/web/.env.example apps/web/.env.local
+```
+
+2. Fill in the required values (at minimum `DATABASE_URL` in both files).
+
 ## Database Setup
 
 This project uses PostgreSQL with Drizzle ORM.
 
 1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
+2. Set `DATABASE_URL` in:
+   - `apps/server/.env.local`
+   - `apps/web/.env.local`
 
 3. Apply the schema to your database:
 
@@ -51,6 +66,19 @@ capstone-class/
 ├── apps/
 │   ├── web/         # Frontend application (Next.js)
 │   └── server/      # Backend API (Express)
+```
+
+## Expense ("exp") Feature Folder Map
+
+If you're looking for the expense reporting flow (cost per sub-test), these are the main touchpoints:
+
+```
+apps/server/src/routers/analytics-expense/
+  controller.ts   # GET /api/analytics-expense/:subTestId
+  service.ts      # backfills cost (Vapi + token cost) and returns totals
+
+apps/web/src/app/generate/test-case/[id]/sub-tests/
+  ExpenseDialog.tsx  # UI dialog that calls /api/analytics-expense/:subTestId
 ```
 
 ## Available Scripts

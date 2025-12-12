@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "capstone-class",
-  description: "capstone-class",
+  title: "Quantix · Synthetic Data, Grounded in Truth",
+  description: "Quantix · Synthetic Data, Grounded in Truth",
 };
 
 export default function RootLayout({
