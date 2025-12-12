@@ -3,13 +3,15 @@ import postgres from "postgres";
 import * as schema from "./schema";
 export * from "drizzle-orm";
 
-const HARD_CODED_DATABASE_URL =
-  "postgresql://postgres.reallfgutstgjjtaqjfx:L94EHWcEiNwJedZH@aws-1-us-east-1.pooler.supabase.com:6543/postgres";
+const FALLBACK_DATABASE_URL =
+  "postgresql://postgres:postgres@localhost:5432/capstone_class";
 
-const databaseUrl = HARD_CODED_DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL || FALLBACK_DATABASE_URL;
 
 if (!process.env.DATABASE_URL) {
-  console.warn("[DB] DATABASE_URL is not set. Using hardcoded fallback URL.");
+  console.warn(
+    "[DB] DATABASE_URL is not set. Using local fallback URL. Set DATABASE_URL in your app env to connect to your real database."
+  );
 }
 
 try {
@@ -21,8 +23,11 @@ try {
   // Silently ignore malformed URL logs; connection attempt will still surface errors
 }
 
+const shouldUseSsl =
+  !databaseUrl.includes("localhost") && !databaseUrl.includes("127.0.0.1");
+
 const sql = postgres(databaseUrl, {
-  ssl: "require",
+  ssl: shouldUseSsl ? "require" : false,
 });
 export const db = drizzle(sql, {
   schema: schema,

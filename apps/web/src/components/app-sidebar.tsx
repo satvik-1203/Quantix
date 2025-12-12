@@ -57,7 +57,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
             <span className="font-semibold text-sm truncate">
-              Capstone Class
+              Quantix · Synthetic Data, Grounded in Truth
             </span>
             <span className="text-xs text-muted-foreground truncate">
               Test Suite

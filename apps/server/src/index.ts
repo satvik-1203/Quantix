@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+// Prefer .env.local (developer-specific) but allow .env as a fallback.
+dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
 import cors from "cors";
