@@ -34,7 +34,9 @@
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "analytics:export": "tsx src/scripts/export-email-analytics.ts"
+    "analytics:export": "tsx src/scripts/export-email-analytics.ts",
+    "benchmark:models": "tsx src/scripts/run-model-benchmark.ts",
+    "list:test-cases": "tsx src/scripts/list-test-cases.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.38",

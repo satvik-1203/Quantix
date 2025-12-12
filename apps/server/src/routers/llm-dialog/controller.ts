@@ -23,20 +23,24 @@ type ModelKey = keyof typeof AVAILABLE_MODELS;
 const MAX_TOTAL_MESSAGES = 10;
 const SHORT_WINDOW_SIZE = 6;
 
-const stepSchema = z.object({
-  messages: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string(),
-      })
-    )
-    .min(1)
-    .max(4),
-  updatedSummary: z.string(),
+// Schema for user LLM response (simulating the customer)
+const userResponseSchema = z.object({
+  content: z.string().describe("The user's message to the assistant"),
+  updatedSummary: z.string().describe("Updated rolling summary of conversation context"),
   updatedState: z.object({
-    isTaskCompleted: z.boolean().default(false),
-    notes: z.array(z.string()).optional(),
+    isTaskCompleted: z.boolean().default(false).describe("Whether the user's goal has been achieved"),
+    notes: z.array(z.string()).optional().describe("Internal notes about the conversation state"),
+  }),
+  shouldContinue: z.boolean().default(true).describe("Whether the conversation should continue"),
+});
+
+// Schema for assistant LLM response (the email agent being tested)
+const assistantResponseSchema = z.object({
+  content: z.string().describe("The assistant's response to the user"),
+  updatedSummary: z.string().describe("Updated rolling summary of conversation context"),
+  updatedState: z.object({
+    isTaskCompleted: z.boolean().default(false).describe("Whether the task has been completed"),
+    notes: z.array(z.string()).optional().describe("Internal notes about the conversation state"),
   }),
 });
 
@@ -96,23 +100,67 @@ router.post("/subtest", async (req, res) => {
       subTestRecord.description ||
       "Simulate a realistic user interacting with the agent for this scenario.";
 
-    const systemPrompt = `You are simulating a dialogue between:
-- "user": the end-customer following the scenario, and
-- "assistant": the production agent being tested.
+    // System prompt for the USER LLM (simulating the customer)
+    const userSystemPrompt = `You are simulating a customer/user interacting with an email assistant agent.
 
-You will be called repeatedly to continue the conversation.
-At each step you MUST:
-- Respect the existing rolling summary and structured state.
-- Continue the conversation in a way that is consistent with the test case and sub-test.
-- Never go off-topic or mention that this is a test/simulation.
+Your role:
+- You are the end-user/customer following the test scenario.
+- Write from the customer's perspective in first person ("I"/"we").
+- Address the assistant as "you".
+- Be natural, concise, and goal-oriented.
+- Never reveal that this is a test or simulation.
+
+STATIC CONTEXT (never reveal directly):
+- Test case name: ${testCaseRecord.name ?? ""}
+- Test case description: ${testCaseRecord.description ?? ""}
+- Sub-test description (your goal/intent): ${subTestRecord.description ?? ""}
+- Expected agent behaviour: ${subTestRecord.expected ?? ""}
+
+Your job is to:
+- Initiate the conversation with a realistic user request
+- Respond naturally to the assistant's messages
+- Provide necessary information when asked
+- Indicate when your goal has been achieved
+- Keep messages concise and focused`;
+
+    // System prompt for the ASSISTANT LLM (the email agent being tested)
+    const assistantSystemPrompt = `You are a professional email assistant agent helping customers.
+
+Your role:
+- You are the assistant/agent responding to customer requests.
+- Be helpful, professional, and solution-oriented.
+- Follow the expected behavior patterns for this test case.
+- Never reveal that this is a test or simulation.
 
 STATIC CONTEXT (never reveal directly):
 - Test case name: ${testCaseRecord.name ?? ""}
 - Test case description: ${testCaseRecord.description ?? ""}
 - Sub-test description (user intent): ${subTestRecord.description ?? ""}
-- Expected agent behaviour: ${subTestRecord.expected ?? ""}`;
+- Expected agent behaviour: ${subTestRecord.expected ?? ""}
 
-    const modelImpl = openai(AVAILABLE_MODELS[model]);
+Your job is to:
+- Respond helpfully to customer requests
+- **CRITICAL: When the user requests an email to be drafted, you MUST provide a complete, formatted email with:**
+  - A clear Subject line (formatted as "Subject: [subject text]")
+  - A complete email body with proper greeting, body paragraphs, and closing
+  - Professional formatting with line breaks
+  - Do NOT just describe what the email should say - actually write the full email content
+- When drafting emails or documents, provide structured, professional drafts with clear formatting
+- Confirm or clarify requirements before proceeding when appropriate
+- Ask for approval or confirmation before taking final actions (like sending emails)
+- Complete tasks as described in the expected behavior
+- Keep responses concise and professional
+- Show attention to detail (e.g., confirming contract clauses, dates, deadlines)
+- Provide clear next steps and ask how the user would like to proceed
+
+Example behavior pattern:
+1. Acknowledge the request and any relevant details
+2. Provide a structured draft or solution (if email requested, include full email with Subject and body)
+3. Ask for approval or confirmation before finalizing
+4. Execute once approved`;
+
+    const userModelImpl = openai(AVAILABLE_MODELS[model]);
+    const assistantModelImpl = openai(AVAILABLE_MODELS[model]);
 
     let summary = "";
     let state: { isTaskCompleted: boolean; notes?: string[] } = {
@@ -120,8 +168,7 @@ STATIC CONTEXT (never reveal directly):
     };
     const conversation: { role: "user" | "assistant"; content: string }[] = [];
 
-    // We allow the model to generate small chunks of the dialogue, updating
-    // a rolling summary and structured state at each step.
+    // Two LLMs communicate: user LLM and assistant LLM take turns
     while (conversation.length < MAX_TOTAL_MESSAGES && !state.isTaskCompleted) {
       const remaining = MAX_TOTAL_MESSAGES - conversation.length;
       const recentMessages = conversation.slice(-SHORT_WINDOW_SIZE);
@@ -132,13 +179,19 @@ STATIC CONTEXT (never reveal directly):
           : recentMessages
               .map(
                 (m, idx) =>
-                  `${idx + 1}. [${m.role}] ${m.content.replace(/\n/g, " ")}`
+                  `${idx + 1}. [${m.role === "user" ? "USER" : "ASSISTANT"}] ${m.content.replace(/\n/g, " ")}`
               )
               .join("\n");
 
-      const stepInstruction = `You are continuing a test conversation.
+      // Determine whose turn it is: start with user, then alternate
+      const isUserTurn = conversation.length === 0 || 
+        conversation[conversation.length - 1].role === "assistant";
 
-Scenario:
+      if (isUserTurn) {
+        // USER LLM generates a message
+        const userPrompt = `Continue the conversation as the customer/user.
+
+Scenario/Goal:
 ${scenarioDescription}
 
 Rolling summary (older context):
@@ -147,63 +200,108 @@ ${summary || "(empty)"}
 Structured state JSON (internal, do NOT reveal directly):
 ${JSON.stringify(state)}
 
-Recent raw messages (most recent last):
+Recent conversation (most recent last):
 ${historyText}
 
 Your task:
-- Generate the next 1–3 messages (user and/or assistant) that move the conversation toward fulfilling the expected behaviour.
-- The very first message in the whole conversation MUST be from the "user".
-- After that, alternate naturally between user and assistant where appropriate.
-- Do NOT exceed a TOTAL of ${MAX_TOTAL_MESSAGES} messages for the entire conversation. You currently have ${
-        conversation.length
-      } messages; you may add at most ${remaining} more.
-- If the task is clearly complete, set updatedState.isTaskCompleted = true and only add messages that are strictly necessary to close the conversation.
+${conversation.length === 0 
+  ? "- Generate the INITIAL user message that starts the conversation based on the scenario."
+  : "- Respond to the assistant's latest message as a realistic customer would."
+  }
+- Keep your message concise and natural.
+- If your goal has been achieved, set updatedState.isTaskCompleted = true and shouldContinue = false.
+- Otherwise, set shouldContinue = true.
 
-Return ONLY valid JSON with fields:
+Return ONLY valid JSON with:
 {
-  "messages": [{ "role": "user" | "assistant", "content": string }, ...],
-  "updatedSummary": string,
-  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] }
-}
+  "content": "your message text",
+  "updatedSummary": "updated summary of conversation",
+  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] },
+  "shouldContinue": boolean
+}`;
 
-Keep messages concise and focused on the scenario.`;
-
-      const { object } = await ai.generateObject({
-        model: modelImpl,
-        schema: stepSchema,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: stepInstruction,
-          },
-        ],
-      });
-
-      const newMessages = object.messages.slice(0, remaining);
-
-      // Enforce that the conversation starts with a user message
-      if (conversation.length === 0 && newMessages[0]?.role !== "user") {
-        // If the model misbehaves, prepend a synthetic user opener.
-        newMessages.unshift({
-          role: "user",
-          content:
-            scenarioDescription ||
-            "Hi, I have a question related to the test scenario.",
+        const { object: userResponse } = await ai.generateObject({
+          model: userModelImpl,
+          schema: userResponseSchema,
+          system: userSystemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: userPrompt,
+            },
+          ],
         });
-      }
 
-      conversation.push(...newMessages);
-      summary = object.updatedSummary || summary;
-      state = {
-        ...state,
-        ...object.updatedState,
-      };
+        conversation.push({
+          role: "user",
+          content: userResponse.content,
+        });
+
+        summary = userResponse.updatedSummary || summary;
+        state = {
+          ...state,
+          ...userResponse.updatedState,
+        };
+
+        if (userResponse.shouldContinue === false || state.isTaskCompleted) {
+          break;
+        }
+      } else {
+        // ASSISTANT LLM generates a response
+        const assistantPrompt = `Respond to the user's message as the email assistant.
+
+Rolling summary (older context):
+${summary || "(empty)"}
+
+Structured state JSON (internal, do NOT reveal directly):
+${JSON.stringify(state)}
+
+Recent conversation (most recent last):
+${historyText}
+
+Your task:
+- Respond helpfully to the user's latest message.
+- **IMPORTANT: If the user requests an email to be drafted, you MUST write the complete email with Subject line and full body content. Do NOT just describe what should be in the email - actually write it.**
+- Follow the expected behavior: ${subTestRecord.expected ?? ""}
+- Keep your response concise and professional.
+- If the task is clearly complete, set updatedState.isTaskCompleted = true.
+
+Return ONLY valid JSON with:
+{
+  "content": "your response text",
+  "updatedSummary": "updated summary of conversation",
+  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] }
+}`;
+
+        const { object: assistantResponse } = await ai.generateObject({
+          model: assistantModelImpl,
+          schema: assistantResponseSchema,
+          system: assistantSystemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: assistantPrompt,
+            },
+          ],
+        });
+
+        conversation.push({
+          role: "assistant",
+          content: assistantResponse.content,
+        });
+
+        summary = assistantResponse.updatedSummary || summary;
+        state = {
+          ...state,
+          ...assistantResponse.updatedState,
+        };
+
+        if (state.isTaskCompleted) {
+          break;
+        }
+      }
 
       if (conversation.length >= MAX_TOTAL_MESSAGES) {
-        break;
-      }
-      if (state.isTaskCompleted) {
         break;
       }
     }
@@ -831,24 +929,67 @@ router.post("/external/stream", async (req, res) => {
           .join("\n")
       : "";
 
-    const systemPrompt = `You are simulating a dialogue between:
-- "user": the end-customer following the scenario, and
-- "assistant": the production agent being tested.
+    // System prompt for the USER LLM (simulating the customer)
+    const userSystemPrompt = `You are simulating a customer/user interacting with an email assistant agent.
 
-You will be called repeatedly to continue the conversation.
-At each step you MUST:
-- Respect the existing rolling summary and structured state.
-- Continue the conversation in a way that is consistent with the test case.
-- Never go off-topic or mention that this is a test/simulation.
-- Use the provided metadata naturally in the conversation when relevant.
+Your role:
+- You are the end-user/customer following the test scenario.
+- Write from the customer's perspective in first person ("I"/"we").
+- Address the assistant as "you".
+- Be natural, concise, and goal-oriented.
+- Never reveal that this is a test or simulation.
+- Use the provided metadata naturally when relevant.
 
 STATIC CONTEXT (never reveal directly):
 - Test case name: ${testCase.name ?? ""}
 - Test case description: ${testCase.description}
 - Expected agent behaviour: ${testCase.expected ?? ""}
-${metadataText ? `- User metadata:\n${metadataText}` : ""}`;
+${metadataText ? `- Your metadata:\n${metadataText}` : ""}
 
-    const modelImpl = openai(AVAILABLE_MODELS[model as ModelKey]);
+Your job is to:
+- Initiate the conversation with a realistic user request
+- Respond naturally to the assistant's messages
+- Provide necessary information when asked
+- Indicate when your goal has been achieved
+- Keep messages concise and focused`;
+
+    // System prompt for the ASSISTANT LLM (the email agent being tested)
+    const assistantSystemPrompt = `You are a professional email assistant agent helping customers.
+
+Your role:
+- You are the assistant/agent responding to customer requests.
+- Be helpful, professional, and solution-oriented.
+- Follow the expected behavior patterns for this test case.
+- Never reveal that this is a test or simulation.
+
+STATIC CONTEXT (never reveal directly):
+- Test case name: ${testCase.name ?? ""}
+- Test case description: ${testCase.description}
+- Expected agent behaviour: ${testCase.expected ?? ""}
+
+Your job is to:
+- Respond helpfully to customer requests
+- **CRITICAL: When the user requests an email to be drafted, you MUST provide a complete, formatted email with:**
+  - A clear Subject line (formatted as "Subject: [subject text]")
+  - A complete email body with proper greeting, body paragraphs, and closing
+  - Professional formatting with line breaks
+  - Do NOT just describe what the email should say - actually write the full email content
+- When drafting emails or documents, provide structured, professional drafts with clear formatting
+- Confirm or clarify requirements before proceeding when appropriate
+- Ask for approval or confirmation before taking final actions (like sending emails)
+- Complete tasks as described in the expected behavior
+- Keep responses concise and professional
+- Show attention to detail (e.g., confirming contract clauses, dates, deadlines)
+- Provide clear next steps and ask how the user would like to proceed
+
+Example behavior pattern:
+1. Acknowledge the request and any relevant details
+2. Provide a structured draft or solution (if email requested, include full email with Subject and body)
+3. Ask for approval or confirmation before finalizing
+4. Execute once approved`;
+
+    const userModelImpl = openai(AVAILABLE_MODELS[model as ModelKey]);
+    const assistantModelImpl = openai(AVAILABLE_MODELS[model as ModelKey]);
 
     let summary = "";
     let state: { isTaskCompleted: boolean; notes?: string[] } = {
@@ -863,7 +1004,7 @@ ${metadataText ? `- User metadata:\n${metadataText}` : ""}`;
       maxMessages,
     });
 
-    // Generate conversation with streaming
+    // Two LLMs communicate: user LLM and assistant LLM take turns
     while (conversation.length < maxMessages && !state.isTaskCompleted) {
       const remaining = maxMessages - conversation.length;
       const recentMessages = conversation.slice(-SHORT_WINDOW_SIZE);
@@ -874,13 +1015,19 @@ ${metadataText ? `- User metadata:\n${metadataText}` : ""}`;
           : recentMessages
               .map(
                 (m, idx) =>
-                  `${idx + 1}. [${m.role}] ${m.content.replace(/\n/g, " ")}`
+                  `${idx + 1}. [${m.role === "user" ? "USER" : "ASSISTANT"}] ${m.content.replace(/\n/g, " ")}`
               )
               .join("\n");
 
-      const stepInstruction = `You are continuing a test conversation.
+      // Determine whose turn it is: start with user, then alternate
+      const isUserTurn = conversation.length === 0 || 
+        conversation[conversation.length - 1].role === "assistant";
 
-Scenario:
+      if (isUserTurn) {
+        // USER LLM generates a message
+        const userPrompt = `Continue the conversation as the customer/user.
+
+Scenario/Goal:
 ${scenarioDescription}
 
 Rolling summary (older context):
@@ -889,72 +1036,124 @@ ${summary || "(empty)"}
 Structured state JSON (internal, do NOT reveal directly):
 ${JSON.stringify(state)}
 
-Recent raw messages (most recent last):
+Recent conversation (most recent last):
 ${historyText}
 
 Your task:
-- Generate the next 1–3 messages (user and/or assistant) that move the conversation toward fulfilling the expected behaviour.
-- The very first message in the whole conversation MUST be from the "user".
-- After that, alternate naturally between user and assistant where appropriate.
-- Do NOT exceed a TOTAL of ${maxMessages} messages for the entire conversation. You currently have ${
-        conversation.length
-      } messages; you may add at most ${remaining} more.
-- If the task is clearly complete, set updatedState.isTaskCompleted = true and only add messages that are strictly necessary to close the conversation.
+${conversation.length === 0 
+  ? "- Generate the INITIAL user message that starts the conversation based on the scenario."
+  : "- Respond to the assistant's latest message as a realistic customer would."
+  }
+- Keep your message concise and natural.
+- If your goal has been achieved, set updatedState.isTaskCompleted = true and shouldContinue = false.
+- Otherwise, set shouldContinue = true.
 
-Return ONLY valid JSON with fields:
+Return ONLY valid JSON with:
 {
-  "messages": [{ "role": "user" | "assistant", "content": string }, ...],
-  "updatedSummary": string,
-  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] }
-}
+  "content": "your message text",
+  "updatedSummary": "updated summary of conversation",
+  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] },
+  "shouldContinue": boolean
+}`;
 
-Keep messages concise and focused on the scenario.`;
-
-      const { object } = await ai.generateObject({
-        model: modelImpl,
-        schema: stepSchema,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: stepInstruction,
-          },
-        ],
-      });
-
-      const newMessages = object.messages.slice(0, remaining);
-
-      // Enforce that the conversation starts with a user message
-      if (conversation.length === 0 && newMessages[0]?.role !== "user") {
-        newMessages.unshift({
-          role: "user",
-          content:
-            scenarioDescription ||
-            "Hi, I have a question related to the test scenario.",
+        const { object: userResponse } = await ai.generateObject({
+          model: userModelImpl,
+          schema: userResponseSchema,
+          system: userSystemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: userPrompt,
+            },
+          ],
         });
-      }
 
-      // Stream each new message as it's generated
-      for (const msg of newMessages) {
-        conversation.push(msg);
+        conversation.push({
+          role: "user",
+          content: userResponse.content,
+        });
+
+        // Stream the user message
         sendEvent("message", {
-          role: msg.role,
-          content: msg.content,
+          role: "user",
+          content: userResponse.content,
           messageIndex: conversation.length - 1,
           totalMessages: conversation.length,
         });
-      }
 
-      summary = object.updatedSummary || summary;
-      state = {
-        ...state,
-        ...object.updatedState,
-      };
+        summary = userResponse.updatedSummary || summary;
+        state = {
+          ...state,
+          ...userResponse.updatedState,
+        };
+
+        if (userResponse.shouldContinue === false || state.isTaskCompleted) {
+          break;
+        }
+      } else {
+        // ASSISTANT LLM generates a response
+        const assistantPrompt = `Respond to the user's message as the email assistant.
+
+Rolling summary (older context):
+${summary || "(empty)"}
+
+Structured state JSON (internal, do NOT reveal directly):
+${JSON.stringify(state)}
+
+Recent conversation (most recent last):
+${historyText}
+
+Your task:
+- Respond helpfully to the user's latest message.
+- **IMPORTANT: If the user requests an email to be drafted, you MUST write the complete email with Subject line and full body content. Do NOT just describe what should be in the email - actually write it.**
+- Follow the expected behavior: ${testCase.expected ?? ""}
+- Keep your response concise and professional.
+- If the task is clearly complete, set updatedState.isTaskCompleted = true.
+
+Return ONLY valid JSON with:
+{
+  "content": "your response text",
+  "updatedSummary": "updated summary of conversation",
+  "updatedState": { "isTaskCompleted": boolean, "notes"?: string[] }
+}`;
+
+        const { object: assistantResponse } = await ai.generateObject({
+          model: assistantModelImpl,
+          schema: assistantResponseSchema,
+          system: assistantSystemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: assistantPrompt,
+            },
+          ],
+        });
+
+        conversation.push({
+          role: "assistant",
+          content: assistantResponse.content,
+        });
+
+        // Stream the assistant message
+        sendEvent("message", {
+          role: "assistant",
+          content: assistantResponse.content,
+          messageIndex: conversation.length - 1,
+          totalMessages: conversation.length,
+        });
+
+        summary = assistantResponse.updatedSummary || summary;
+        state = {
+          ...state,
+          ...assistantResponse.updatedState,
+        };
+
+        if (state.isTaskCompleted) {
+          break;
+        }
+      }
 
       if (conversation.length >= maxMessages) {
-        break;
-      }
-      if (state.isTaskCompleted) {
         break;
       }
     }

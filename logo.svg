@@ -1,0 +1,54 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#818cf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#gradient)" opacity="0.1"/>
+  
+  <!-- Main Q letter -->
+  <path d="M 100 40 
+           A 50 50 0 1 1 100 140
+           A 50 50 0 1 1 100 40
+           Z" 
+        fill="url(#gradient)" 
+        stroke="url(#gradientLight)" 
+        stroke-width="3"/>
+  
+  <!-- Q tail -->
+  <path d="M 130 120 L 160 150" 
+        stroke="url(#gradient)" 
+        stroke-width="8" 
+        stroke-linecap="round"/>
+  
+  <!-- Evaluation checkmark inside Q -->
+  <path d="M 85 100 L 95 110 L 115 85" 
+        stroke="white" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+  
+  <!-- Measurement gauge/arc on right side -->
+  <path d="M 140 60 
+           A 30 30 0 0 1 170 90" 
+        stroke="url(#gradientLight)" 
+        stroke-width="4" 
+        fill="none" 
+        stroke-linecap="round"
+        opacity="0.7"/>
+  
+  <!-- Small dots representing data points -->
+  <circle cx="145" cy="70" r="3" fill="url(#gradientLight)" opacity="0.8"/>
+  <circle cx="160" cy="80" r="3" fill="url(#gradientLight)" opacity="0.8"/>
+  <circle cx="165" cy="95" r="3" fill="url(#gradientLight)" opacity="0.8"/>
+</svg>
+
+
